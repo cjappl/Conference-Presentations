@@ -223,6 +223,135 @@ using LockFreeLoggingQueue = moodycamel::ReaderWriterQueue<LoggingData>;
 LockFreeLoggingQueue mLoggingQueue { LOG_QUEUE_MAX_SIZE };
 ```
 
+---
+layout: image-right
+image: images/Moodycamel_logo.png
+---
+
+# ReaderWriterQueue
+<br>
+
+```cpp
+using namespace moodycamel;
+
+// Reserve space for 100 elements
+ReaderWriterQueue<int> q{100}; 
+
+// Try to enqueue (never allocates)
+bool succeeded = q.try_enqueue(18);  
+assert(succeeded);
+
+int number;
+q.try_dequeue(number);
+```
+<br>
+
+[A Fast Lock-Free Queue for C++](https://moodycamel.com/blog/2013/a-fast-lock-free-queue-for-c++)
+
+---
+---
+
+# Version 1: Using a lock-free queue
+
+```cpp
+struct LoggingData 
+{
+   LogRegion region;
+   LogLevel  level;
+   char      message[MAX_MESSAGE_SIZE];
+};
+```
+<v-click>
+```cpp {all|10|all}
+static void RealtimeLog(LogRegion region, LogLevel level, const char* format, ...) 
+{
+   LoggingData data;
+   data.region = region;
+   data.level = level;
+
+   .. va_args_nonsense ..
+   vsnprintf(data.message, kMaxMessageSize, format, args);
+
+   mLoggingQueue.try_enqueue(data);
+}
+```
+</v-click>
+
+---
+---
+
+# Version 1: Using a lock-free queue
+
+```cpp 
+void RealtimeLog(LogRegion region, LogLevel level, const char* format, ...) 
+{
+   ...
+
+   mLoggingQueue.try_enqueue(data);
+}
+```
+
+```cpp {all|5|all}
+void ProcessAndPrintLogs() 
+{
+   LoggingData data;
+
+   while (mLoggingQueue.try_dequeue(data))
+   {
+       std::cout << "[" << data.level << "] ";
+       std::cout << "(" << data.region << ") ";
+       std::cout <<        data.message;
+       std::cout << '\n';
+   }
+}
+```
+
+---
+layout: fact
+---
+
+# All done??
+
+---
+---
+
+# What's wrong here?
+
+```cpp{all|8}
+static void RealtimeLog(/* */) 
+{
+   LoggingData data;
+   data.region = region;
+   data.level = level;
+
+   .. va_args_nonsense ..
+   vsnprintf(data.message, kMaxMessageSize, format, args);
+
+   mLoggingQueue.try_enqueue(data);
+}
+```
+
+<!-- TODO FORMAT! -->
+<br>
+
+<div v-click="2">
+
+```
+man 3 vsnprintf
+```
+... 
+(apostrophe) Decimal conversions (d, u, or i) or the integral portion of a floating point conversion (f or F) should be grouped and separated by thousands using the non-monetary separator returned by localeconv(3). 
+... 
+
+
+</div>
+
+---
+layout: image
+image: images/StackTrace_printf.png
+---
+
+
 <!--
 Use code snippets and get the highlighting directly![^1]
 
