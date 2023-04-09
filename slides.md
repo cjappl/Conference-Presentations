@@ -263,7 +263,7 @@ struct LoggingData
 ```
 <v-click>
 ```cpp {all|10|all}
-static void RealtimeLog(LogRegion region, LogLevel level, const char* format, ...) 
+void RealtimeLog(LogRegion region, LogLevel level, const char* format, ...) 
 {
    LoggingData data;
    data.region = region;
@@ -318,7 +318,7 @@ layout: fact
 # What's wrong here?
 
 ```cpp{all|8}
-static void RealtimeLog(/* */) 
+void RealtimeLog(/* */) 
 {
    LoggingData data;
    data.region = region;
@@ -384,7 +384,7 @@ Uses only two external headers!
 #define STB_SPRINTF_IMPLEMENTATION
 #include "stb_sprintf.h"
 
-static void RealtimeLog(/* */) 
+void RealtimeLog(/* */) 
 {
    ...
 
@@ -403,6 +403,8 @@ layout: center
 ---
 ---
 
+# A note on ordering
+
 ```mermaid {theme: 'light'}
 sequenceDiagram
   autonumber
@@ -414,7 +416,82 @@ sequenceDiagram
   Logging Thread->>+File: Log(2)
 ```
 
+---
+layout: two-cols
+---
 
+# Non-real-time logging
+
+```cpp{all|0}
+void Log(...) {
+   PrintToFile(region, level, message);
+}
+
+void PrintToFile(...) {
+   printf("[%s] (%s) ", level, region);
+   printf(format, args);
+   printf("\n", level, region);
+}
+```
+
+::right::
+
+<div v-click="1">
+
+# Real-time logging
+
+```cpp
+void RealtimeLog(...) {
+   ...
+   mLoggingQueue.try_enqueue(data);
+}
+
+// Periodically polled
+void ProcessAndPrintLogs()
+{
+   PrintToFile(data.region, data.level, 
+               data.message);
+}
+```
+</div>
+
+---
+---
+
+# Version 3: An atomic "sequence number"
+
+```cpp
+#include <atomic>
+
+static std::atomic<int> gSequenceNumber { 0 };
+```
+
+<div v-click="1">
+```cpp
+void PrintToFile(int sequenceNum, /* */) {
+   std::printf("%i”, sequenceNum); 
+   ... // print rest
+}
+
+```
+</div>
+<div v-click="2">
+```cpp
+void Log(/* */) {
+   PrintToFile(region, level, ++gSequenceNumber, message);
+}
+```
+</div>
+
+<div v-click="3">
+```cpp
+void RealtimeLog(/* */) {
+   ...
+   data.sequenceNumber = ++gSequenceNumber;
+   mLoggingQueue.try_enqueue(data);
+}
+```
+</div>
 
 
 
