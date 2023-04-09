@@ -171,7 +171,7 @@ image: https://source.unsplash.com/collection/94734566/1920x1080
 <br>
 
 ```cpp {all|6}
-void Log(const char* format, ...)
+void RealtimeLog(const char* format, ...)
 {
    va_list args;
 
@@ -182,7 +182,7 @@ void Log(const char* format, ...)
 
 int RealtimeCallback()
 {
-   Log("Hello %s. My Lucky number is %d", "World", 777);
+   RealtimeLog("Hello %s. My Lucky number is %d", "World", 777);
 }
 
 ```
@@ -350,6 +350,72 @@ man 3 vsnprintf
 layout: image
 image: images/StackTrace_printf.png
 ---
+
+---
+layout: image-right
+image: images/stb.png
+---
+
+# stb 
+<br>
+
+<div v-click="1">
+
+Uses only two external headers!
+
+
+```cpp {all|all|1-2|4-5}
+// for va_arg(), va_list()
+#include <stdarg.h> 
+
+ // size_t, ptrdiff_t
+#include <stddef.h>
+```
+
+</div>
+
+---
+---
+# Version 2: Using a third party vsnprintf
+
+<br> 
+```cpp
+
+#define STB_SPRINTF_IMPLEMENTATION
+#include "stb_sprintf.h"
+
+static void RealtimeLog(/* */) 
+{
+   ...
+
+   stb_vsnprintf(data.message, kMaxMessageSize, format, args);
+
+   mLoggingQueue.try_enqueue(data);
+}
+```
+
+---
+layout: center
+---
+
+# A note on ordering
+
+---
+---
+
+```mermaid {theme: 'light'}
+sequenceDiagram
+  autonumber
+  UI Thread->>+File: Log(1)
+  Audio Thread->>+Queue: RealtimeLog(2)
+  UI Thread->>+File: Log(3)
+  UI Thread->>+File: Log(4)
+  Logging Thread->>+Queue: ProcessLogs()
+  Logging Thread->>+File: Log(2)
+```
+
+
+
 
 
 <!--
