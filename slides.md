@@ -9,7 +9,7 @@ class: 'text-center'
 # https://sli.dev/custom/highlighters.html
 highlighter: shiki
 # show line numbers in code blocks
-lineNumbers: false
+lineNumbers: true
 # some information about the slides, markdown enabled
 
 # persist drawings in exports and build
@@ -124,6 +124,103 @@ void SomeRealtimeFunction(float** buffer, int bufferSize, int channels)
        LOG_CRIT("Error occurred! Send help! %s", someErrorString);
    }
 }
+```
+
+---
+---
+
+# Motivation: Observability and Metrics
+<br>
+```cpp {all|8-12}
+void SomeRealtimeFunction() 
+{
+  const auto startTime = GetTimestamp();
+  ...
+  const auto endTime = GetTimestamp();
+
+  mAverageRenderTime = ...; mPeakRenderTime = ...;
+
+  if (HaventLoggedIn10Seconds) 
+  {
+     LogRenderStatistics(mAverageRenderTime, mPeakRenderTime);
+  }
+}
+```
+
+---
+layout: image-right
+image: https://source.unsplash.com/collection/94734566/1920x1080
+---
+
+# Motivation: User generated logging 
+<br>
+
+- Evaluating user generated Lua code.
+- Users leaving logging in the `OnRender` callback.
+<!-- Directive usage: this will be invisible until you press "next" the second time -->
+<br>
+<div v-click class="text-xl p-2">
+
+"Logs you can hear"
+
+</div>
+
+---
+---
+# Version 0: The problem with simple printf logging
+<br>
+
+```cpp {all|6}
+void Log(const char* format, ...)
+{
+   va_list args;
+
+   va_start(args, format);
+   vprintf(format, args);
+   va_end(args);
+}
+
+int RealtimeCallback()
+{
+   Log("Hello %s. My Lucky number is %d", "World", 777);
+}
+
+```
+
+---
+---
+
+# Version 1: Using a lock-free queue
+
+<br>
+
+```mermaid {theme: 'light'}
+sequenceDiagram
+  autonumber
+  Audio Thread->>+Queue: RealtimeLog() calls Enqueue
+  loop Periodically
+      Logging Thread->>+Queue: ProcessLogs() calls Dequeue
+  end
+  Note right of Logging Thread : printf/cout/Log
+```
+
+---
+---
+
+# Version 1: Using a lock-free queue
+<br>
+
+```cpp{all|5|10|8|all}
+struct LoggingData
+{
+   LogRegion region;
+   LogLevel  level;
+   char      message[MAX_MESSAGE_SIZE];
+};
+
+using LockFreeLoggingQueue = moodycamel::ReaderWriterQueue<LoggingData>;
+
+LockFreeLoggingQueue mLoggingQueue { LOG_QUEUE_MAX_SIZE };
 ```
 
 <!--
