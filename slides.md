@@ -21,7 +21,10 @@ transition: slide-left
 css: unocss
 # light or dark?
 colorSchema: 'light'
+# favicon
+favicon: 'https://cdn.jsdelivr.net/gh/slidevjs/slidev/assets/favicon.png'
 ---
+
 
 # Taming real-time logging 
 ## Lessons learned from the trenches
@@ -270,7 +273,7 @@ void RealtimeLog(LogRegion region, LogLevel level, const char* format, ...)
    data.level = level;
 
    .. va_args_nonsense ..
-   vsnprintf(data.message, kMaxMessageSize, format, args);
+   vsnprintf(data.message, MAX_MESSAGE_SIZE, format, args);
 
    mLoggingQueue.try_enqueue(data);
 }
@@ -325,7 +328,7 @@ void RealtimeLog(/* */)
    data.level = level;
 
    .. va_args_nonsense ..
-   vsnprintf(data.message, kMaxMessageSize, format, args);
+   vsnprintf(data.message, MAX_MESSAGE_SIZE, format, args);
 
    mLoggingQueue.try_enqueue(data);
 }
@@ -388,7 +391,7 @@ void RealtimeLog(/* */)
 {
    ...
 
-   stb_vsnprintf(data.message, kMaxMessageSize, format, args);
+   stb_vsnprintf(data.message, MAX_MESSAGE_SIZE, format, args);
 
    mLoggingQueue.try_enqueue(data);
 }
@@ -493,7 +496,200 @@ void RealtimeLog(/* */) {
 ```
 </div>
 
+---
+---
+# TODO: Full final example
 
+---
+layout: cover
+background: https://source.unsplash.com/collection/94734566/1920x1080
+---
+
+# Limitations
+
+---
+---
+# Truncation and data loss
+```cpp{all|1,8|2,13|all}
+constexpr auto MAX_MESSAGE_SIZE = 512;
+constexpr auto LOG_QUEUE_MAX_SIZE = 100;
+
+struct LoggingData
+{
+   LogRegion region;
+   LogLevel  level;
+   char      message[MAX_MESSAGE_SIZE];
+};
+
+using LockFreeLoggingQueue = moodycamel::ReaderWriterQueue<LoggingData>;
+
+LockFreeLoggingQueue mLoggingQueue { LOG_QUEUE_MAX_SIZE };
+```
+
+---
+layout: cover
+background: https://source.unsplash.com/collection/94734566/1920x1080
+---
+
+# Is using va_args real-time safe?
+
+
+---
+---
+
+# Yes!
+
+```
+Higher memory address    Last parameter
+                         Penultimate parameter
+                         ....
+                         Second parameter
+Lower memory address     First parameter
+```
+
+<br>
+
+<div v-click="1">
+
+```c
+void func (int a, ...)
+{
+   // va_start
+   char *p = (char *) &a + sizeof a;
+
+   // va_arg
+   int i1 = *((int *)p);
+   p += sizeof (int);
+
+   // va_arg
+   long i2 = *((long *)p);
+   p += sizeof (long);
+}
+```
+</div>
+
+---
+---
+
+# Yes...ish (?)
+
+```console
+> man 3 va_args # https://linux.die.net/man/3/va_arg
+...
+Finally, on systems where arguments are passed in registers, 
+it may be necessary for va_start() to allocate memory
+...
+```
+
+---
+---
+
+# Variadic Templates as an alternative to va_args[^1]
+<br>
+
+```
+template<typename ...T>
+void RealtimeLog(LogRegion region, LogLevel level, T&&... args) 
+{
+    ...
+};
+
+```
+
+<br>
+
+Resolves at compile time, so guaranteed to have no allocations!
+
+[^1]: [Variadic Templates are Funadic - CppCon 2012](https://www.youtube.com/watch?v=dD57tJjkumE)
+
+<style>
+.footnotes-sep {
+  @apply mt-20 opacity-10;
+}
+.footnotes {
+  @apply text-sm opacity-75;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+}
+.footnote-backref {
+  display: none;
+}
+</style>
+
+---
+---
+
+# What about libfmt?
+
+According to the author of `libfmt` you can use `format_to_n` safely with no allocations![^1]
+
+```cpp{all|1-2|8|15}
+template<typename ...T>
+void RealtimeLogFmt(LogRegion region, LogLevel level, fmt::format_string<T...> fmtString, T&&... args)
+{
+    NewLoggingData data;
+    auto& buffer = data.message;
+
+    ...
+    fmt::format_to_n(buffer, MAX_MESSAGE_SIZE, fmtString, args...);
+
+    mLoggingQueue.try_enqueue(data);
+};
+
+int main() 
+{
+    RealtimeLogFmt(LogRegion::Network, LogLevel::Info, FMT_STRING("{} - {:.2f} - {}"), 42, 3.14, "hello");
+    ProcessAndPrintLogs();
+    return 0;
+}
+```
+
+
+
+[^1]: [Possible memory allocations #1665 fmtlib/fmt](https://github.com/fmtlib/fmt/issues/1665)
+
+<style>
+.footnotes-sep {
+  @apply mt-20 opacity-10;
+}
+.footnotes {
+  @apply text-sm opacity-75;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+}
+.footnote-backref {
+  display: none;
+}
+</style>
+
+
+---
+layout: center
+---
+
+# WARNING: 
+# C++20 `libfmt` not guaranteed to be real-time safe!
+
+---
+---
+
+# Summary
+
+<v-clicks>
+
+- Don't use normal logging in your real-time thread.
+- A real-time logger is a lock-free queue that you can print messages into.
+- Beware the sneaky system calls to `localeconv` in standard `printf` family code.
+- Use sequence numbers to ensure your loggers have proper ordering.
+- `va_args` is real-time safe on most platforms
+    - Variadic templates for the paranoid (or embedded inclined)
+
+</v-clicks>
+
+---
+---
 
 <!--
 Use code snippets and get the highlighting directly![^1]
