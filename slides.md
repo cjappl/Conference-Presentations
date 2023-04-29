@@ -122,7 +122,7 @@ Here is another comment.
 void SomeRealtimeFunction(float** buffer, int bufferSize, int channels)
 {
    ...
-   if (ErrorOccurred())
+   if (retVal != STATUS_OK)
    {
        LOG_CRIT("Error occurred! Send help! %s", someErrorString);
    }
@@ -138,12 +138,12 @@ void SomeRealtimeFunction(float** buffer, int bufferSize, int channels)
 void SomeRealtimeFunction() 
 {
   const auto startTime = GetTimestamp();
-  ...
+  RenderAudio()
   const auto endTime = GetTimestamp();
 
   mAverageRenderTime = ...; mPeakRenderTime = ...;
 
-  if (HaventLoggedIn10Seconds) 
+  if (haventLoggedIn10Seconds) 
   {
      LogRenderStatistics(mAverageRenderTime, mPeakRenderTime);
   }
@@ -228,7 +228,7 @@ LockFreeLoggingQueue mLoggingQueue { LOG_QUEUE_MAX_SIZE };
 
 ---
 layout: image-right
-image: images/Moodycamel_logo.png
+image: /Moodycamel_logo.png
 ---
 
 # ReaderWriterQueue
@@ -342,24 +342,26 @@ void RealtimeLog(/* */)
 ```
 man 3 vsnprintf
 ```
-... 
-(apostrophe) Decimal conversions (d, u, or i) or the integral portion of a floating point conversion (f or F) should be grouped and separated by thousands using the non-monetary separator returned by localeconv(3). 
-... 
+<br>
+
+> ... 
+> (apostrophe) Decimal conversions (d, u, or i) or the integral portion of a floating point conversion (f or F) should be grouped and separated by thousands using the non-monetary separator returned by localeconv(3). 
+> ... 
 
 
 </div>
 
 ---
 layout: image
-image: images/StackTrace_printf.png
+image: /StackTrace_printf.png
 ---
 
 ---
 layout: image-right
-image: images/stb.png
+image: /stb.png
 ---
 
-# stb 
+# `stb` - single file libraries
 <br>
 
 <div v-click="1">
@@ -407,6 +409,34 @@ layout: center
 ---
 
 # A note on ordering
+```cpp
+void DatabaseFunction()
+{
+    Log(1);
+     
+    Log(3);
+    Log(4);
+}
+```
+<br>
+<br>
+
+```cpp
+void RealtimeCallback ()
+{
+
+    RealtimeLog(2);
+
+}
+```
+
+
+
+---
+---
+
+
+# A note on ordering
 
 ```mermaid {theme: 'light'}
 sequenceDiagram
@@ -425,7 +455,7 @@ layout: two-cols
 
 # Non-real-time logging
 
-```cpp{all|0}
+```cpp{all|0|all}
 void Log(...) {
    PrintToFile(region, level, message);
 }
@@ -498,7 +528,75 @@ void RealtimeLog(/* */) {
 
 ---
 ---
-# TODO: Full final example
+# `cjappl/rtlog-cpp`
+
+<br>
+<div class="h-screen">
+<img src="/QR_rtlog.svg" class="mx-auto" />
+
+  <a href="https://github.com/cjappl/rtlog-cpp" target="_blank" alt="GitHub"
+    class="text-xl slidev-icon-btn!border-none p-1/2 justify-center">
+    <carbon-logo-github />
+  </a>
+
+</div>
+
+---
+---
+# `rtlog-cpp`
+
+```cpp
+struct LogData
+{
+    LogLevel level;
+    LogRegion region;
+};
+
+static auto PrintMessage = [](const LogData& data, size_t sequenceNumber, const char* fstring, ...) 
+                           __attribute__ ((format (printf, 4, 5)))
+{
+...
+};
+
+rtlog::Logger<LogData, MAX_NUM_LOG_MESSAGES, MAX_LOG_MESSAGE_LENGTH, gSequenceNumber> gRealtimeLogger;
+rtlog::LogProcessingThread thread{gRealtimeLogger, PrintMessage, std::chrono::milliseconds(10)};
+
+void SomeFunction()
+{
+    gRealtimeLogger.Log({LogLevel::Debug, LogRegion::Engine}, "Hello, %lu!", 123l); 
+}
+
+```
+
+---
+---
+# `rtlog-cpp`
+
+```cpp
+Status Log(const LogData& inputData, const char* format, ...) __attribute__ ((format (printf, 3, 4))) {
+    auto retVal = Status::Success;
+
+    InternalLogData dataToQueue;
+    dataToQueue.mLogData = inputData;
+    dataToQueue.mSequenceNumber = ++SequenceNumber;
+
+    va_list args;
+    va_start(args, format);
+    auto result = stbsp_vsnprintf(dataToQueue.mMessage.data(), dataToQueue.mMessage.size(), format, args);
+    va_end(args);
+
+    if (result < 0 || result >= dataToQueue.mMessage.size())
+        retVal = Status::Error_MessageTruncated;
+
+    // Even if the message was truncated, we still try to enqueue it to minimize data loss
+    const bool dataWasEnqueued = mQueue.try_enqueue(dataToQueue);
+
+    if (!dataWasEnqueued)
+        retVal = Status::Error_QueueFull;
+
+    return retVal;
+}
+```
 
 ---
 layout: cover
