@@ -106,15 +106,21 @@ background: https://source.unsplash.com/collection/94734566/1920x1080
 # Why do we need a real-time logger?
 
 ---
+clicks: 3 
 ---
 
 
-# Motivation: Diagnostics 
+# Motivation
+
 <br>
-```cpp
+
+<div v-if="$slidev.nav.clicks == 0">
+
+## 1. Diagnostics
+
+```cpp {5}
 void SomeRealtimeFunction(float** buffer, int bufferSize, int channels)
 {
-   ...
    if (retVal != STATUS_OK)
    {
        LOG_CRIT("Error occurred! Send help! %s", someErrorString);
@@ -122,12 +128,13 @@ void SomeRealtimeFunction(float** buffer, int bufferSize, int channels)
 }
 ```
 
----
----
+</div>
 
-# Motivation: Observability and Metrics
-<br>
-```cpp {all|8-12}
+<div v-if="$slidev.nav.clicks == 1">
+
+## 2. Metrics
+
+```cpp {11}
 void SomeRealtimeFunction() 
 {
   const auto startTime = GetTimestamp();
@@ -140,26 +147,75 @@ void SomeRealtimeFunction()
   {
      LogRenderStatistics(mAverageRenderTime, mPeakRenderTime);
   }
+
+  if (retVal != STATUS_OK)
+  {
+     LOG_CRIT("Error occurred! Send help! %s", someErrorString);
+  }
 }
 ```
+</div>
 
----
-layout: image-right
-image: https://source.unsplash.com/collection/94734566/1920x1080
----
+<div v-if="$slidev.nav.clicks == 2">
 
-# Motivation: User generated logging 
+## 3. User generated Lua code
+
+```cpp {4}
+void SomeRealtimeFunction() 
+{
+  const auto startTime = GetTimestamp();
+  RenderUserLua();
+  RenderAudio();
+  const auto endTime = GetTimestamp();
+
+  mAverageRenderTime = ...; mPeakRenderTime = ...;
+
+  if (haventLoggedIn10Seconds) 
+  {
+     LogRenderStatistics(mAverageRenderTime, mPeakRenderTime);
+  }
+
+  if (retVal != STATUS_OK)
+  {
+     LOG_CRIT("Error occurred! Send help! %s", someErrorString);
+  }
+}
+```
+</div>
+
+<div v-if="$slidev.nav.clicks >= 3">
+
+## 1. Diagnostics
+
+```cpp
+LOG_CRIT("Error occurred! Send help! %s", someErrorString);
+```
+
 <br>
 
-- Evaluating user generated Lua code.
-- Users leaving logging in the `OnRender` callback.
-<!-- Directive usage: this will be invisible until you press "next" the second time -->
-<br>
-<div v-click class="text-xl p-2">
+## 2. Metrics
 
-"Logs you can hear"
+```cpp
+LogRenderStatistics(mAverageRenderTime, mPeakRenderTime);
+```
+
+<br>
+
+## 3. User generated Lua code
+
+```cpp
+RenderUserLua();
+```
 
 </div>
+
+---
+layout: cover
+background: https://source.unsplash.com/collection/94734566/1920x1080
+---
+
+# Version 0: The problem with simple printf logging
+
 
 ---
 ---
@@ -182,6 +238,68 @@ int RealtimeCallback()
 }
 
 ```
+
+---
+clicks: 2
+---
+# Real-time safety recap
+<br>
+<br>
+
+<div v-if="$slidev.nav.clicks == 0">
+<div class="grid grid-cols-3 flex justify-center gap-40">
+    <div class="box-border h-40 w-40 p-4 border-4 border-black-500 rounded-md">
+      <div class="text-center text-black-500">
+          <AutoFitText :max="30" :min="20" modelValue="No system calls"/>
+      </div>
+    </div>
+    <div class="box-border h-40 w-40 p-4 border-4 border-black-500 rounded-md">
+      <div class="text-center text-black-500">
+          <AutoFitText :max="30" :min="20" modelValue="No allocations"/>
+      </div>
+    </div>
+    <div class="box-border h-40 w-40 p-4 border-4 border-black-500 rounded-md">
+      <div class="text-center text-black-500">
+          <AutoFitText :max="30" :min="20" modelValue="No mutexes"/>
+      </div>
+    </div>
+</div>
+</div>
+
+<div v-if="$slidev.nav.clicks > 0">
+
+<div class="grid grid-cols-3 flex justify-center gap-40">
+    <div class="box-border h-40 w-40 p-4 border-4 border-rose-500 rounded-md">
+      <div class="text-center text-rose-500">
+          <AutoFitText :max="30" :min="20" modelValue="No system calls"/>
+      </div>
+    </div>
+    <div class="box-border h-40 w-40 p-4 border-4 border-yellow-500 rounded-md">
+      <div class="text-center text-yellow-500">
+          <AutoFitText :max="30" :min="20" modelValue="No allocations"/>
+      </div>
+    </div>
+    <div class="box-border h-40 w-40 p-4 border-4 border-yellow-500 rounded-md">
+      <div class="text-center text-yellow-500">
+          <AutoFitText :max="30" :min="20" modelValue="No mutexes"/>
+      </div>
+    </div>
+</div>
+
+<br>
+
+```cpp
+void RealtimeLog(const char* format, ...)
+{
+   va_list args;
+
+   va_start(args, format);
+   vprintf(format, args);
+   va_end(args);
+}
+```
+
+</div>
 
 ---
 layout: cover
@@ -214,7 +332,7 @@ sequenceDiagram
 # Version 1: Using a lock-free queue
 <br>
 
-```cpp{all|5|10|8|all}
+```cpp{all|8|10|5|all}
 struct LoggingData
 {
    LogRegion region;
@@ -1132,3 +1250,22 @@ class: text-center
 # Learn More
 
 [Documentations](https://sli.dev) · [GitHub](https://github.com/slidevjs/slidev) · [Showcases](https://sli.dev/showcases.html)
+
+<div class="grid grid-cols-3 flex justify-center gap-40">
+    <div class="box-border h-40 w-40 p-4 border-4 border-rose-500 rounded-md">
+      <div class="text-center text-rose-500">
+          <AutoFitText :max="30" :min="20" modelValue="No system calls"/>
+      </div>
+    </div>
+    <div class="box-border h-40 w-40 p-4 border-4 border-rose-500 rounded-md">
+      <div class="text-center text-rose-500">
+          <AutoFitText :max="30" :min="20" modelValue="No allocations"/>
+      </div>
+    </div>
+    <div class="box-border h-40 w-40 p-4 border-4 border-rose-500 rounded-md">
+      <div class="text-center text-rose-500">
+          <AutoFitText :max="30" :min="20" modelValue="No mutexes"/>
+      </div>
+    </div>
+</div>
+
