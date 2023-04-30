@@ -334,7 +334,6 @@ void RealtimeLog(/* */)
 }
 ```
 
-<!-- TODO FORMAT! -->
 <br>
 
 <div v-click="2">
@@ -527,6 +526,38 @@ void RealtimeLog(/* */) {
 </div>
 
 ---
+layout: cover
+background: https://source.unsplash.com/collection/94734566/1920x1080
+---
+
+# Summary 
+
+---
+---
+
+# Summary
+
+<br>
+
+## On initialization:
+1. Create a lock-free queue containing type `LogData` - contains any custom type plus a `char` buffer.
+2. Create a thread to periodically poll and print out the enqueued messages.
+
+<br>
+
+## In the `RealtimeLog` function:
+1. Create a stack variable of type `LogData`.
+2. Using a real-time safe `printf` family method, print your variable arguments into the buffer.
+3. Fill in `LogData`'s sequence number with the next atomic sequence number to preserve ordering.
+4. Try to enqueue the data.
+
+<br>
+
+## In the `ProcessLog` function:
+1. periodically try to dequeue all the messages in the `LogData` queue, and Log them!
+
+
+---
 ---
 # `cjappl/rtlog-cpp`
 
@@ -540,63 +571,6 @@ void RealtimeLog(/* */) {
   </a>
 
 </div>
-
----
----
-# `rtlog-cpp`
-
-```cpp
-struct LogData
-{
-    LogLevel level;
-    LogRegion region;
-};
-
-static auto PrintMessage = [](const LogData& data, size_t sequenceNumber, const char* fstring, ...) 
-                           __attribute__ ((format (printf, 4, 5)))
-{
-...
-};
-
-rtlog::Logger<LogData, MAX_NUM_LOG_MESSAGES, MAX_LOG_MESSAGE_LENGTH, gSequenceNumber> gRealtimeLogger;
-rtlog::LogProcessingThread thread{gRealtimeLogger, PrintMessage, std::chrono::milliseconds(10)};
-
-void SomeFunction()
-{
-    gRealtimeLogger.Log({LogLevel::Debug, LogRegion::Engine}, "Hello, %lu!", 123l); 
-}
-
-```
-
----
----
-# `rtlog-cpp`
-
-```cpp
-Status Log(const LogData& inputData, const char* format, ...) __attribute__ ((format (printf, 3, 4))) {
-    auto retVal = Status::Success;
-
-    InternalLogData dataToQueue;
-    dataToQueue.mLogData = inputData;
-    dataToQueue.mSequenceNumber = ++SequenceNumber;
-
-    va_list args;
-    va_start(args, format);
-    auto result = stbsp_vsnprintf(dataToQueue.mMessage.data(), dataToQueue.mMessage.size(), format, args);
-    va_end(args);
-
-    if (result < 0 || result >= dataToQueue.mMessage.size())
-        retVal = Status::Error_MessageTruncated;
-
-    // Even if the message was truncated, we still try to enqueue it to minimize data loss
-    const bool dataWasEnqueued = mQueue.try_enqueue(dataToQueue);
-
-    if (!dataWasEnqueued)
-        retVal = Status::Error_QueueFull;
-
-    return retVal;
-}
-```
 
 ---
 layout: cover
@@ -773,7 +747,7 @@ layout: center
 ---
 ---
 
-# Summary
+# Recap
 
 <v-clicks>
 
@@ -787,7 +761,75 @@ layout: center
 </v-clicks>
 
 ---
+layout: cover
+background: https://source.unsplash.com/collection/94734566/1920x1080
 ---
+
+# Thank you!
+
+---
+layout: cover
+background: https://source.unsplash.com/collection/94734566/1920x1080
+---
+
+# Appendix
+
+# `rtlog-cpp`
+
+```cpp
+struct LogData
+{
+    LogLevel level;
+    LogRegion region;
+};
+
+static auto PrintMessage = [](const LogData& data, size_t sequenceNumber, const char* fstring, ...) 
+                           __attribute__ ((format (printf, 4, 5)))
+{
+...
+};
+
+rtlog::Logger<LogData, MAX_NUM_LOG_MESSAGES, MAX_LOG_MESSAGE_LENGTH, gSequenceNumber> gRealtimeLogger;
+rtlog::LogProcessingThread thread{gRealtimeLogger, PrintMessage, std::chrono::milliseconds(10)};
+
+void SomeFunction()
+{
+    gRealtimeLogger.Log({LogLevel::Debug, LogRegion::Engine}, "Hello, %lu!", 123l); 
+}
+
+```
+
+---
+---
+# `rtlog-cpp`
+
+```cpp
+Status Log(const LogData& inputData, const char* format, ...) __attribute__ ((format (printf, 3, 4))) {
+    auto retVal = Status::Success;
+
+    InternalLogData dataToQueue;
+    dataToQueue.mLogData = inputData;
+    dataToQueue.mSequenceNumber = ++SequenceNumber;
+
+    va_list args;
+    va_start(args, format);
+    auto result = stbsp_vsnprintf(dataToQueue.mMessage.data(), dataToQueue.mMessage.size(), format, args);
+    va_end(args);
+
+    if (result < 0 || result >= dataToQueue.mMessage.size())
+        retVal = Status::Error_MessageTruncated;
+
+    // Even if the message was truncated, we still try to enqueue it to minimize data loss
+    const bool dataWasEnqueued = mQueue.try_enqueue(dataToQueue);
+
+    if (!dataWasEnqueued)
+        retVal = Status::Error_QueueFull;
+
+    return retVal;
+}
+```
+
+
 
 <!--
 Use code snippets and get the highlighting directly![^1]

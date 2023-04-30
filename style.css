@@ -1,0 +1,4 @@
+/* Turn off tick marks in inline codeblocks */
+:not(pre) > code::before, :not(pre) > code::after {
+	content: "";
+}
