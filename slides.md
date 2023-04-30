@@ -25,6 +25,8 @@ colorSchema: 'light'
 favicon: 'https://cdn.jsdelivr.net/gh/slidevjs/slidev/assets/favicon.png'
 ---
 
+<!-- TODO motivation on ones slide pop up -->
+<!-- TODO explicitly put up the constraints -->
 
 # Taming real-time logging 
 ## Lessons learned from the trenches
@@ -62,7 +64,7 @@ image: https://source.unsplash.com/collection/94734566/1920x1080
 
 <br>
 
-## Christopher Apple
+## Chris Apple - <carbon-logo-github/> `cjappl`
 
 <br>
 
@@ -73,33 +75,16 @@ image: https://source.unsplash.com/collection/94734566/1920x1080
 - Specialize in immersive audio.
 - Love music, DJing and technology! 
 
+<!-- TODO slide numbers?? -->
+<div class="absolute left-5px bottom-5px">
+<SlideCurrentNo />
+</div>
+
 <br>
 <br>
-
-Github [https://github.com/cjappl](https://github.com/cjappl)
-
-<!--
-You can have `style` tag in markdown to override the style for the current page.
-Learn more: https://sli.dev/guide/syntax#embedded-styles
-
-<style>
-h1 {
-  background-color: #2B90B6;
-  background-image: linear-gradient(45deg, #4EC5D4 10%, #146b8c 20%);
-  background-size: 100%;
-  -webkit-background-clip: text;
-  -moz-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  -moz-text-fill-color: transparent;
-}
-</style>
--->
-
-<!--
-Here is another comment.
--->
 
 ---
+disabled: true
 ---
 
 # Goals
@@ -114,7 +99,15 @@ Here is another comment.
 - Third Party Libraries have reasonable licensing for corporate use.
 
 ---
+layout: cover
+background: https://source.unsplash.com/collection/94734566/1920x1080
 ---
+
+# Why do we need a real-time logger?
+
+---
+---
+
 
 # Motivation: Diagnostics 
 <br>
@@ -191,6 +184,14 @@ int RealtimeCallback()
 ```
 
 ---
+layout: cover
+background: https://source.unsplash.com/collection/94734566/1920x1080
+---
+
+# Version 1: Lock-free queue
+
+
+---
 ---
 
 # Version 1: Using a lock-free queue
@@ -247,6 +248,8 @@ assert(succeeded);
 int number;
 q.try_dequeue(number);
 ```
+<br>
+<br>
 <br>
 
 [A Fast Lock-Free Queue for C++](https://moodycamel.com/blog/2013/a-fast-lock-free-queue-for-c++)
@@ -341,12 +344,19 @@ void RealtimeLog(/* */)
 ```
 man 3 vsnprintf
 ```
-<br>
-
 > ... 
 > (apostrophe) Decimal conversions (d, u, or i) or the integral portion of a floating point conversion (f or F) should be grouped and separated by thousands using the non-monetary separator returned by localeconv(3). 
 > ... 
 
+<br>
+
+</div>
+
+<div v-click="3">
+
+```
+1,234.56 -> 1.234,567 -> 1 234,567
+```
 
 </div>
 
@@ -368,7 +378,7 @@ image: /stb.png
 Uses only two external headers!
 
 
-```cpp {all|all|1-2|4-5}
+```cpp
 // for va_arg(), va_list()
 #include <stdarg.h> 
 
@@ -773,6 +783,9 @@ background: https://source.unsplash.com/collection/94734566/1920x1080
 ---
 
 # Appendix
+
+---
+---
 
 # `rtlog-cpp`
 
