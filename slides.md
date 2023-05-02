@@ -135,7 +135,7 @@ void SomeRealtimeFunction(float** buffer, int bufferSize, int channels)
 ## 2. Metrics
 
 ```cpp {11}
-void SomeRealtimeFunction() 
+void SomeRealtimeFunction(float** buffer, int bufferSize, int channels)
 {
   const auto startTime = GetTimestamp();
   RenderAudio()
@@ -161,7 +161,7 @@ void SomeRealtimeFunction()
 ## 3. User generated Lua code
 
 ```cpp {4}
-void SomeRealtimeFunction() 
+void SomeRealtimeFunction(float** buffer, int bufferSize, int channels)
 {
   const auto startTime = GetTimestamp();
   RenderUserLua();
@@ -222,7 +222,7 @@ background: https://source.unsplash.com/collection/94734566/1920x1080
 # Version 0: The problem with simple printf logging
 <br>
 
-```cpp {all|6}
+```cpp {all|12|1,6}
 void RealtimeLog(const char* format, ...)
 {
    va_list args;
@@ -306,13 +306,12 @@ layout: cover
 background: https://source.unsplash.com/collection/94734566/1920x1080
 ---
 
-# Version 1: Lock-free queue
-
+# Version 1: A logging thread
 
 ---
 ---
 
-# Version 1: Using a lock-free queue
+# Version 1: Logging thread
 
 <br>
 
@@ -329,7 +328,7 @@ sequenceDiagram
 ---
 ---
 
-# Version 1: Using a lock-free queue
+# Version 1: Logging thread
 <br>
 
 ```cpp{all|8|10|5|all}
@@ -375,7 +374,7 @@ q.try_dequeue(number);
 ---
 ---
 
-# Version 1: Using a lock-free queue
+# Version 1: Logging thread
 
 ```cpp
 struct LoggingData 
@@ -404,7 +403,7 @@ void RealtimeLog(LogRegion region, LogLevel level, const char* format, ...)
 ---
 ---
 
-# Version 1: Using a lock-free queue
+# Version 1: Logging thread
 
 ```cpp 
 void RealtimeLog(LogRegion region, LogLevel level, const char* format, ...) 
@@ -431,12 +430,29 @@ void ProcessAndPrintLogs()
 ```
 
 ---
-layout: fact
 ---
 
 # All done??
+<br>
 
----
+<div class="grid grid-cols-3 flex justify-center gap-40">
+    <div class="box-border h-40 w-40 p-4 border-4 border-emerald-500 rounded-md">
+      <div class="text-center text-emerald-500">
+          <AutoFitText :max="30" :min="20" modelValue="No system calls"/>
+      </div>
+    </div>
+    <div class="box-border h-40 w-40 p-4 border-4 border-emerald-500 rounded-md">
+      <div class="text-center text-emerald-500">
+          <AutoFitText :max="30" :min="20" modelValue="No allocations"/>
+      </div>
+    </div>
+    <div class="box-border h-40 w-40 p-4 border-4 border-emerald-500 rounded-md">
+      <div class="text-center text-emerald-500">
+          <AutoFitText :max="30" :min="20" modelValue="No mutexes"/>
+      </div>
+    </div>
+</div>
+
 ---
 
 # What's wrong here?
@@ -463,7 +479,7 @@ void RealtimeLog(/* */)
 man 3 vsnprintf
 ```
 > ... 
-> (apostrophe) Decimal conversions (d, u, or i) or the integral portion of a floating point conversion (f or F) should be grouped and separated by thousands using the non-monetary separator returned by localeconv(3). 
+> Decimal conversions (d, u, or i) or the integral portion of a floating point conversion (f or F) should be grouped and **separated by thousands using the non-monetary separator returned by localeconv(3)**. 
 > ... 
 
 <br>
@@ -483,6 +499,45 @@ layout: image
 image: /StackTrace_printf.png
 ---
 
+
+---
+---
+# Log thread using std library snprintf functions
+<br>
+
+<div class="grid grid-cols-3 flex justify-center gap-40">
+    <div class="box-border h-40 w-40 p-4 border-4 border-rose-500 rounded-md">
+      <div class="text-center text-rose-500">
+          <AutoFitText :max="30" :min="20" modelValue="No system calls"/>
+      </div>
+    </div>
+    <div class="box-border h-40 w-40 p-4 border-4 border-yellow-500 rounded-md">
+      <div class="text-center text-yellow-500">
+          <AutoFitText :max="30" :min="20" modelValue="No allocations"/>
+      </div>
+    </div>
+    <div class="box-border h-40 w-40 p-4 border-4 border-rose-500 rounded-md">
+      <div class="text-center text-rose-500">
+          <AutoFitText :max="30" :min="20" modelValue="No mutexes"/>
+      </div>
+    </div>
+</div>
+
+---
+layout: cover
+background: https://source.unsplash.com/collection/94734566/1920x1080
+---
+
+# Who is more paranoid than audio software engineers?
+
+---
+layout: cover
+background: https://source.unsplash.com/collection/94734566/1920x1080
+---
+
+# Embedded systems engineers!
+
+
 ---
 layout: image-right
 image: /stb.png
@@ -493,10 +548,8 @@ image: /stb.png
 
 <div v-click="1">
 
-Uses only two external headers!
-
-
 ```cpp
+// in stb_sprintf.h
 // for va_arg(), va_list()
 #include <stdarg.h> 
 
@@ -520,11 +573,35 @@ void RealtimeLog(/* */)
 {
    ...
 
+   //  vsnprintf(data.message, MAX_MESSAGE_SIZE, format, args);
    stb_vsnprintf(data.message, MAX_MESSAGE_SIZE, format, args);
 
    mLoggingQueue.try_enqueue(data);
 }
 ```
+
+---
+---
+# Version 2: Logging thread + `stb` `vsnprintf`
+<br>
+<div class="grid grid-cols-3 flex justify-center gap-40">
+    <div class="box-border h-40 w-40 p-4 border-4 border-green-500 rounded-md">
+      <div class="text-center text-green-500">
+          <AutoFitText :max="30" :min="20" modelValue="No system calls"/>
+      </div>
+    </div>
+    <div class="box-border h-40 w-40 p-4 border-4 border-green-500 rounded-md">
+      <div class="text-center text-green-500">
+          <AutoFitText :max="30" :min="20" modelValue="No allocations"/>
+      </div>
+    </div>
+    <div class="box-border h-40 w-40 p-4 border-4 border-green-500 rounded-md">
+      <div class="text-center text-green-500">
+          <AutoFitText :max="30" :min="20" modelValue="No mutexes"/>
+      </div>
+    </div>
+</div>
+
 
 ---
 layout: center
@@ -537,7 +614,7 @@ layout: center
 
 # A note on ordering
 ```cpp
-void DatabaseFunction()
+void UserInterfaceThread()
 {
     Log(1);
      
@@ -556,8 +633,6 @@ void RealtimeCallback ()
 
 }
 ```
-
-
 
 ---
 ---
@@ -654,6 +729,43 @@ void RealtimeLog(/* */) {
 </div>
 
 ---
+---
+
+# Logging thread + `stb_vsnprintf` + seq number
+<br>
+<div class="grid grid-cols-3 flex justify-center gap-40">
+    <div class="box-border h-40 w-40 p-4 border-4 border-green-500 rounded-md">
+      <div class="text-center text-green-500">
+          <AutoFitText :max="30" :min="20" modelValue="No system calls"/>
+      </div>
+    </div>
+    <div class="box-border h-40 w-40 p-4 border-4 border-green-500 rounded-md">
+      <div class="text-center text-green-500">
+          <AutoFitText :max="30" :min="20" modelValue="No allocations"/>
+      </div>
+    </div>
+    <div class="box-border h-40 w-40 p-4 border-4 border-green-500 rounded-md">
+      <div class="text-center text-green-500">
+          <AutoFitText :max="30" :min="20" modelValue="No mutexes"/>
+      </div>
+    </div>
+</div>
+
+<br>
+<br>
+
+## Relative ordering preserved!
+
+```bash
+{"region": "LOG  ", "severity": "INFO", "message": "logging to stdout enabled", "seq": 1}
+{"region": "SPATL", "severity": "DEBG", "message": "gGlobal: 60000093ba60", "seq": 3}
+{"region": "DEMON", "severity": "INFO", "message": "kIOPMAssertionTypeNoIdleSleep assert succeeds", "seq": 4}
+{"region": "DEMON", "severity": "INFO", "message": "kIOPreventSystemSleep assert succeeds", "seq": 5}
+{"region": "AUDIO", "severity": "INFO", "message": "Hi from audio thread", "seq": 2}
+```
+
+
+---
 layout: cover
 background: https://source.unsplash.com/collection/94734566/1920x1080
 ---
@@ -727,6 +839,18 @@ LockFreeLoggingQueue mLoggingQueue { LOG_QUEUE_MAX_SIZE };
 ```
 
 ---
+layout: image-right
+image: https://source.unsplash.com/collection/94734566/1920x1080
+---
+# Speed
+
+- Heavy use of atomics in the lock-free queue
+- Log sparingly
+- Consider compiling out in release mode
+
+<br>
+
+---
 layout: cover
 background: https://source.unsplash.com/collection/94734566/1920x1080
 ---
@@ -735,9 +859,14 @@ background: https://source.unsplash.com/collection/94734566/1920x1080
 
 
 ---
+clicks: 2
 ---
 
+<div v-if="$slidev.nav.clicks == 0">
+
 # Yes!
+
+### Stack of a function call:
 
 ```
 Higher memory address    Last parameter
@@ -748,8 +877,6 @@ Lower memory address     First parameter
 ```
 
 <br>
-
-<div v-click="1">
 
 ```c
 void func (int a, ...)
@@ -768,10 +895,10 @@ void func (int a, ...)
 ```
 </div>
 
----
----
+<div v-if="$slidev.nav.clicks >= 1">
 
-# Yes...ish (?)
+# Yes!...ish (?)
+<br>
 
 ```console
 > man 3 va_args # https://linux.die.net/man/3/va_arg
@@ -781,11 +908,15 @@ it may be necessary for va_start() to allocate memory
 ...
 ```
 
+</div>
+
 ---
 ---
 
 # Variadic Templates as an alternative to va_args[^1]
 <br>
+<br>
+
 
 ```
 template<typename ...T>
@@ -795,10 +926,6 @@ void RealtimeLog(LogRegion region, LogLevel level, T&&... args)
 };
 
 ```
-
-<br>
-
-Resolves at compile time, so guaranteed to have no allocations!
 
 [^1]: [Variadic Templates are Funadic - CppCon 2012](https://www.youtube.com/watch?v=dD57tJjkumE)
 
@@ -820,7 +947,7 @@ Resolves at compile time, so guaranteed to have no allocations!
 ---
 ---
 
-# What about libfmt?
+# What about `libfmt`?
 
 According to the author of `libfmt` you can use `format_to_n` safely with no allocations![^1]
 
@@ -870,6 +997,8 @@ layout: center
 ---
 
 # WARNING: 
+<br>
+
 # C++20 `libfmt` not guaranteed to be real-time safe!
 
 ---
@@ -883,8 +1012,10 @@ layout: center
 - A real-time logger is a lock-free queue that you can print messages into.
 - Beware the sneaky system calls to `localeconv` in standard `printf` family code.
 - Use sequence numbers to ensure your loggers have proper ordering.
-- `va_args` is real-time safe on most platforms
-    - Variadic templates for the paranoid (or embedded inclined)
+- Beware the possibility of data loss using the real-time logger.
+- `va_args` is real-time safe on most platforms.
+    - Variadic templates for the paranoid (or embedded inclined).
+    - Also unlocks the use of `libfmt` - which is type-safe as well!
 
 </v-clicks>
 
