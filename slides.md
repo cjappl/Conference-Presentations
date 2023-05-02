@@ -582,7 +582,7 @@ void RealtimeLog(/* */)
 
 ---
 ---
-# Version 2: Logging thread + `stb` `vsnprintf`
+# Version 2: Logging thread + `stb_vsnprintf`
 <br>
 <div class="grid grid-cols-3 flex justify-center gap-40">
     <div class="box-border h-40 w-40 p-4 border-4 border-green-500 rounded-md">
@@ -601,6 +601,23 @@ void RealtimeLog(/* */)
       </div>
     </div>
 </div>
+<br>
+
+```cpp
+void RealtimeLog(LogRegion region, LogLevel level, const char* format, ...) {
+    LoggingData data;
+    data.region = region;
+    data.level = level;
+
+    va_list args;
+    va_start(args, format);
+    stb_vsnprintf(data.message, MAX_MESSAGE_SIZE, format, args);
+    va_end()
+
+    mLoggingQueue.try_enqueue(data);
+}
+```
+
 
 
 ---
@@ -635,10 +652,13 @@ void RealtimeCallback ()
 ```
 
 ---
+clicks: 2
 ---
 
 
 # A note on ordering
+
+<div v-if="$slidev.nav.clicks == 0">
 
 ```mermaid {theme: 'light'}
 sequenceDiagram
@@ -650,6 +670,20 @@ sequenceDiagram
   Logging Thread->>+Queue: ProcessLogs()
   Logging Thread->>+File: Log(2)
 ```
+</div>
+
+<div v-if="$slidev.nav.clicks >= 1">
+
+```bash
+> ./testPrinter.out
+UI   : 1
+UI   : 3
+UI   : 4
+AUDIO: 2
+```
+
+
+</div>
 
 ---
 layout: two-cols
@@ -657,15 +691,9 @@ layout: two-cols
 
 # Non-real-time logging
 
-```cpp{all|0|all}
+```cpp{all|0|2}
 void Log(...) {
    PrintToFile(region, level, message);
-}
-
-void PrintToFile(...) {
-   printf("[%s] (%s) ", level, region);
-   printf(format, args);
-   printf("\n", level, region);
 }
 ```
 
@@ -675,7 +703,7 @@ void PrintToFile(...) {
 
 # Real-time logging
 
-```cpp
+```cpp{all|7,11}
 void RealtimeLog(...) {
    ...
    mLoggingQueue.try_enqueue(data);
@@ -684,6 +712,8 @@ void RealtimeLog(...) {
 // Periodically polled
 void ProcessAndPrintLogs()
 {
+   mLoggingQueue.try_dequeue(data)
+
    PrintToFile(data.region, data.level, 
                data.message);
 }
@@ -823,8 +853,8 @@ background: https://source.unsplash.com/collection/94734566/1920x1080
 ---
 # Truncation and data loss
 ```cpp{all|1,8|2,13|all}
-constexpr auto MAX_MESSAGE_SIZE = 512;
-constexpr auto LOG_QUEUE_MAX_SIZE = 100;
+constexpr auto MAX_MESSAGE_SIZE = 512;   // WILL TRUNCATE ANOTHING MORE!
+constexpr auto LOG_QUEUE_MAX_SIZE = 100; // WILL DROP ANY MESSAGES IF QUEUE IS FULL!
 
 struct LoggingData
 {
@@ -1020,11 +1050,24 @@ layout: center
 </v-clicks>
 
 ---
-layout: cover
-background: https://source.unsplash.com/collection/94734566/1920x1080
 ---
-
 # Thank you!
+
+<div class="text-center">
+
+`cjappl/rtlog-cpp`
+
+</div>
+
+<div class="h-screen">
+<img src="/QR_rtlog.svg" class="mx-auto" />
+
+  <a href="https://github.com/cjappl/rtlog-cpp" target="_blank" alt="GitHub"
+    class="text-xl slidev-icon-btn!border-none p-1/2 justify-center">
+    <carbon-logo-github />
+  </a>
+
+</div>
 
 ---
 layout: cover
