@@ -832,6 +832,7 @@ void RealtimeLog(/* */) {
 
 ---
 layout: cover
+class: "text-center"
 background: cassette.avif 
 ---
 
@@ -879,6 +880,7 @@ background: cassette.avif
 
 ---
 layout: cover
+class: "text-center"
 background: cassette.avif 
 ---
 
