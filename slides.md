@@ -3,9 +3,10 @@
 theme: default
 # random image from a curated Unsplash collection by Anthony
 # like them? see https://unsplash.com/collections/94734566/slidev
-background: https://source.unsplash.com/collection/94734566/1920x1080
+# background: https://source.unsplash.com/collection/94734566/1920x1080
+background: cassette.avif 
 # apply any windi css classes to the current slide
-class: 'text-center'
+class: "text-center"
 # https://sli.dev/custom/highlighters.html
 highlighter: shiki
 # show line numbers in code blocks
@@ -25,13 +26,15 @@ colorSchema: 'light'
 favicon: 'https://cdn.jsdelivr.net/gh/slidevjs/slidev/assets/favicon.png'
 ---
 
-<!-- TODO motivation on ones slide pop up -->
-<!-- TODO explicitly put up the constraints -->
+<div class='text-center font-medium text-shadow-lg'>
 
 # Taming real-time logging 
 ## Lessons learned from the trenches
 
-Christopher Apple
+Chris Apple
+
+</div>
+
 
 <!--
 <div class="pt-12">
@@ -57,7 +60,7 @@ The last comment block of each slide will be treated as slide notes. It will be 
 
 ---
 layout: image-right
-image: https://source.unsplash.com/collection/94734566/1920x1080
+image: speaker_portrait.jpg
 ---
 
 # About me
@@ -100,10 +103,14 @@ disabled: true
 
 ---
 layout: cover
-background: https://source.unsplash.com/collection/94734566/1920x1080
+background: cassette.avif
 ---
 
+<div class='text-center font-medium text-shadow-lg'>
+
 # Why do we need a real-time logger?
+
+</div>
 
 ---
 clicks: 3 
@@ -211,10 +218,15 @@ RenderUserLua();
 
 ---
 layout: cover
-background: https://source.unsplash.com/collection/94734566/1920x1080
+background: cassette.avif 
 ---
 
-# Version 0: The problem with simple printf logging
+<div class='text-center font-medium text-shadow-lg'>
+
+# Version 0
+## The problem with simple printf logging
+
+</div>
 
 
 ---
@@ -303,10 +315,15 @@ void RealtimeLog(const char* format, ...)
 
 ---
 layout: cover
-background: https://source.unsplash.com/collection/94734566/1920x1080
+background: cassette.avif 
 ---
 
-# Version 1: A logging thread
+<div class='text-center font-medium text-shadow-lg'>
+
+# Version 1
+## Using a logging thread
+
+</div>
 
 ---
 ---
@@ -384,6 +401,8 @@ struct LoggingData
    char      message[MAX_MESSAGE_SIZE];
 };
 ```
+<br> 
+
 <v-click>
 ```cpp {all|10|all}
 void RealtimeLog(LogRegion region, LogLevel level, const char* format, ...) 
@@ -413,6 +432,8 @@ void RealtimeLog(LogRegion region, LogLevel level, const char* format, ...)
    mLoggingQueue.try_enqueue(data);
 }
 ```
+
+<br> 
 
 ```cpp {all|5|all}
 void ProcessAndPrintLogs() 
@@ -525,17 +546,26 @@ image: /StackTrace_printf.png
 
 ---
 layout: cover
-background: https://source.unsplash.com/collection/94734566/1920x1080
+background: chip.jpg 
 ---
 
-# Who is more paranoid than audio software engineers?
+<div class='text-center font-medium text-shadow-lg backdrop-blur-2 rounded-2xl'>
+
+# A group more paranoid than audio software engineers?
+
+</div>
 
 ---
 layout: cover
-background: https://source.unsplash.com/collection/94734566/1920x1080
+background: chip.jpg 
 ---
 
+<div class='text-center font-medium text-shadow-lg backdrop-blur-2 rounded-2xl'>
+
 # Embedded systems engineers!
+
+</div>
+
 
 
 ---
@@ -563,8 +593,7 @@ image: /stb.png
 ---
 # Version 2: Using a third party vsnprintf
 
-<br> 
-```cpp
+```cpp{2,3,9-10}
 
 #define STB_SPRINTF_IMPLEMENTATION
 #include "stb_sprintf.h"
@@ -620,11 +649,17 @@ void RealtimeLog(LogRegion region, LogLevel level, const char* format, ...) {
 
 
 
+
 ---
-layout: center
+layout: cover
+background: cassette.avif 
 ---
 
+<div class='text-center font-medium text-shadow-lg'>
+
 # A note on ordering
+
+</div>
 
 ---
 ---
@@ -652,7 +687,7 @@ void RealtimeCallback ()
 ```
 
 ---
-clicks: 2
+clicks: 1
 ---
 
 
@@ -787,17 +822,17 @@ void RealtimeLog(/* */) {
 ## Relative ordering preserved!
 
 ```bash
-{"region": "LOG  ", "severity": "INFO", "message": "logging to stdout enabled", "seq": 1}
-{"region": "SPATL", "severity": "DEBG", "message": "gGlobal: 60000093ba60", "seq": 3}
-{"region": "DEMON", "severity": "INFO", "message": "kIOPMAssertionTypeNoIdleSleep assert succeeds", "seq": 4}
-{"region": "DEMON", "severity": "INFO", "message": "kIOPreventSystemSleep assert succeeds", "seq": 5}
-{"region": "AUDIO", "severity": "INFO", "message": "Hi from audio thread", "seq": 2}
+{"region": "LOG  ", "severity": "INFO", "message": "...", "seq": 1}
+{"region": "SPATL", "severity": "DEBG", "message": "...", "seq": 3}
+{"region": "DEMON", "severity": "INFO", "message": "...", "seq": 4}
+{"region": "DEMON", "severity": "INFO", "message": "...", "seq": 5}
+{"region": "AUDIO", "severity": "INFO", "message": "...", "seq": 2}
 ```
 
 
 ---
 layout: cover
-background: https://source.unsplash.com/collection/94734566/1920x1080
+background: cassette.avif 
 ---
 
 # Summary 
@@ -844,7 +879,7 @@ background: https://source.unsplash.com/collection/94734566/1920x1080
 
 ---
 layout: cover
-background: https://source.unsplash.com/collection/94734566/1920x1080
+background: cassette.avif 
 ---
 
 # Limitations
@@ -870,19 +905,20 @@ LockFreeLoggingQueue mLoggingQueue { LOG_QUEUE_MAX_SIZE };
 
 ---
 layout: image-right
-image: https://source.unsplash.com/collection/94734566/1920x1080
+image: racecar.avif
 ---
 # Speed
 
 - Heavy use of atomics in the lock-free queue
 - Log sparingly
 - Consider compiling out in release mode
+- Don't use your real-time log for all logging!
 
 <br>
 
 ---
 layout: cover
-background: https://source.unsplash.com/collection/94734566/1920x1080
+background: cassette.avif 
 ---
 
 # Is using va_args real-time safe?
@@ -892,21 +928,10 @@ background: https://source.unsplash.com/collection/94734566/1920x1080
 clicks: 2
 ---
 
-<div v-if="$slidev.nav.clicks == 0">
-
 # Yes!
 
-### Stack of a function call:
+<div v-if="$slidev.nav.clicks >= 0">
 
-```
-Higher memory address    Last parameter
-                         Penultimate parameter
-                         ....
-                         Second parameter
-Lower memory address     First parameter
-```
-
-<br>
 
 ```c
 void func (int a, ...)
@@ -927,8 +952,7 @@ void func (int a, ...)
 
 <div v-if="$slidev.nav.clicks >= 1">
 
-# Yes!...ish (?)
-<br>
+## ...ish (?)
 
 ```console
 > man 3 va_args # https://linux.die.net/man/3/va_arg
@@ -944,11 +968,9 @@ it may be necessary for va_start() to allocate memory
 ---
 
 # Variadic Templates as an alternative to va_args[^1]
-<br>
-<br>
-
 
 ```
+
 template<typename ...T>
 void RealtimeLog(LogRegion region, LogLevel level, T&&... args) 
 {
@@ -1023,13 +1045,17 @@ int main()
 
 
 ---
-layout: center
+layout: cover
+class: 'text-center'
+background: caution.avif
 ---
 
-# WARNING: 
-<br>
+<div class='text-center font-medium text-shadow-lg'>
 
-# C++20 `libfmt` not guaranteed to be real-time safe!
+# CAUTION: 
+## C++20 libfmt not guaranteed to be real-time safe!
+
+</div>
 
 ---
 ---
@@ -1070,11 +1096,38 @@ layout: center
 </div>
 
 ---
-layout: cover
-background: https://source.unsplash.com/collection/94734566/1920x1080
+layout: image-right
+image: speaker_portrait.jpg
 ---
 
+# Special thanks
+
+## Reviewers
+
+- Ryan Avery
+- Palmer Hogen
+- Eric Odland
+- David O'Neal
+
+## Open source libraries
+
+- [`moodycamel/readerwriterqueue`](https://github.com/cameron314/readerwriterqueue)
+- [`nothings/stb`](https://github.com/nothings/stb)
+
+## Slides created in 
+- [`slidevjs/slidev`](https://github.com/slidevjs/slidev)
+
+
+---
+layout: cover
+background: cassette.avif 
+---
+
+<div class='text-center font-medium text-shadow-lg'>
+
 # Appendix
+
+</div>
 
 ---
 ---
@@ -1133,313 +1186,4 @@ Status Log(const LogData& inputData, const char* format, ...) __attribute__ ((fo
     return retVal;
 }
 ```
-
-
-
-<!--
-Use code snippets and get the highlighting directly![^1]
-
-```ts {all|2|1-6|9|all}
-interface User {
-  id: number
-  firstName: string
-  lastName: string
-  role: string
-}
-
-function updateUser(id: number, update: User) {
-  const user = getUser(id)
-  const newUser = { ...user, ...update }
-  saveUser(id, newUser)
-}
-```
-
-<arrow v-click="3" x1="400" y1="420" x2="230" y2="330" color="#564" width="3" arrowSize="1" />
-
-[^1]: [Learn More](https://sli.dev/guide/syntax.html#line-highlighting)
-
-<style>
-.footnotes-sep {
-  @apply mt-20 opacity-10;
-}
-.footnotes {
-  @apply text-sm opacity-75;
-}
-.footnote-backref {
-  display: none;
-}
-</style>
-
--->
-
-
----
-
-# Components
-
-<div grid="~ cols-2 gap-4">
-<div>
-
-You can use Vue components directly inside your slides.
-
-We have provided a few built-in components like `<Tweet/>` and `<Youtube/>` that you can use directly. And adding your custom components is also super easy.
-
-```html
-<Counter :count="10" />
-```
-
-<!-- ./components/Counter.vue -->
-<Counter :count="10" m="t-4" />
-
-Check out [the guides](https://sli.dev/builtin/components.html) for more.
-
-</div>
-<div>
-
-```html
-<Tweet id="1390115482657726468" />
-```
-
-<Tweet id="1390115482657726468" scale="0.65" />
-
-</div>
-</div>
-
-<!--
-Presenter note with **bold**, *italic*, and ~~striked~~ text.
-
-Also, HTML elements are valid:
-<div class="flex w-full">
-  <span style="flex-grow: 1;">Left content</span>
-  <span>Right content</span>
-</div>
--->
-
-
----
-class: px-20
----
-
-# Themes
-
-Slidev comes with powerful theming support. Themes can provide styles, layouts, components, or even configurations for tools. Switching between themes by just **one edit** in your frontmatter:
-
-<div grid="~ cols-2 gap-2" m="-t-2">
-
-```yaml
----
-theme: default
----
-```
-
-```yaml
----
-theme: seriph
----
-```
-
-<img border="rounded" src="https://github.com/slidevjs/themes/blob/main/screenshots/theme-default/01.png?raw=true">
-
-<img border="rounded" src="https://github.com/slidevjs/themes/blob/main/screenshots/theme-seriph/01.png?raw=true">
-
-</div>
-
-Read more about [How to use a theme](https://sli.dev/themes/use.html) and
-check out the [Awesome Themes Gallery](https://sli.dev/themes/gallery.html).
-
----
-preload: false
----
-
-# Animations
-
-Animations are powered by [@vueuse/motion](https://motion.vueuse.org/).
-
-```html
-<div
-  v-motion
-  :initial="{ x: -80 }"
-  :enter="{ x: 0 }">
-  Slidev
-</div>
-```
-
-<div class="w-60 relative mt-6">
-  <div class="relative w-40 h-40">
-    <img
-      v-motion
-      :initial="{ x: 800, y: -100, scale: 1.5, rotate: -50 }"
-      :enter="final"
-      class="absolute top-0 left-0 right-0 bottom-0"
-      src="https://sli.dev/logo-square.png"
-    />
-    <img
-      v-motion
-      :initial="{ y: 500, x: -100, scale: 2 }"
-      :enter="final"
-      class="absolute top-0 left-0 right-0 bottom-0"
-      src="https://sli.dev/logo-circle.png"
-    />
-    <img
-      v-motion
-      :initial="{ x: 600, y: 400, scale: 2, rotate: 100 }"
-      :enter="final"
-      class="absolute top-0 left-0 right-0 bottom-0"
-      src="https://sli.dev/logo-triangle.png"
-    />
-  </div>
-
-  <div
-    class="text-5xl absolute top-14 left-40 text-[#2B90B6] -z-1"
-    v-motion
-    :initial="{ x: -80, opacity: 0}"
-    :enter="{ x: 0, opacity: 1, transition: { delay: 2000, duration: 1000 } }">
-    Slidev
-  </div>
-</div>
-
-<!-- vue script setup scripts can be directly used in markdown, and will only affects current page -->
-<script setup lang="ts">
-const final = {
-  x: 0,
-  y: 0,
-  rotate: 0,
-  scale: 1,
-  transition: {
-    type: 'spring',
-    damping: 10,
-    stiffness: 20,
-    mass: 2
-  }
-}
-</script>
-
-<div
-  v-motion
-  :initial="{ x:35, y: 40, opacity: 0}"
-  :enter="{ y: 0, opacity: 1, transition: { delay: 3500 } }">
-
-[Learn More](https://sli.dev/guide/animations.html#motion)
-
-</div>
-
----
-
-# LaTeX
-
-LaTeX is supported out-of-box powered by [KaTeX](https://katex.org/).
-
-<br>
-
-Inline $\sqrt{3x-1}+(1+x)^2$
-
-Block
-$$
-\begin{array}{c}
-
-\nabla \times \vec{\mathbf{B}} -\, \frac1c\, \frac{\partial\vec{\mathbf{E}}}{\partial t} &
-= \frac{4\pi}{c}\vec{\mathbf{j}}    \nabla \cdot \vec{\mathbf{E}} & = 4 \pi \rho \\
-
-\nabla \times \vec{\mathbf{E}}\, +\, \frac1c\, \frac{\partial\vec{\mathbf{B}}}{\partial t} & = \vec{\mathbf{0}} \\
-
-\nabla \cdot \vec{\mathbf{B}} & = 0
-
-\end{array}
-$$
-
-<br>
-
-[Learn more](https://sli.dev/guide/syntax#latex)
-
----
-
-# Diagrams
-
-You can create diagrams / graphs from textual descriptions, directly in your Markdown.
-
-<div class="grid grid-cols-3 gap-10 pt-4 -mb-6">
-
-```mermaid {scale: 0.5}
-sequenceDiagram
-    Alice->John: Hello John, how are you?
-    Note over Alice,John: A typical interaction
-```
-
-```mermaid {theme: 'neutral', scale: 0.8}
-graph TD
-B[Text] --> C{Decision}
-C -->|One| D[Result 1]
-C -->|Two| E[Result 2]
-```
-
-```plantuml {scale: 0.7}
-@startuml
-
-package "Some Group" {
-  HTTP - [First Component]
-  [Another Component]
-}
-
-node "Other Groups" {
-  FTP - [Second Component]
-  [First Component] --> FTP
-}
-
-cloud {
-  [Example 1]
-}
-
-
-database "MySql" {
-  folder "This is my folder" {
-    [Folder 3]
-  }
-  frame "Foo" {
-    [Frame 4]
-  }
-}
-
-
-[Another Component] --> [Example 1]
-[Example 1] --> [Folder 3]
-[Folder 3] --> [Frame 4]
-
-@enduml
-```
-
-</div>
-
-[Learn More](https://sli.dev/guide/syntax.html#diagrams)
-
----
-src: ./pages/multiple-entries.md
-hide: false
----
-
----
-layout: center
-class: text-center
----
-
-# Learn More
-
-[Documentations](https://sli.dev) · [GitHub](https://github.com/slidevjs/slidev) · [Showcases](https://sli.dev/showcases.html)
-
-<div class="grid grid-cols-3 flex justify-center gap-40">
-    <div class="box-border h-40 w-40 p-4 border-4 border-rose-500 rounded-md">
-      <div class="text-center text-rose-500">
-          <AutoFitText :max="30" :min="20" modelValue="No system calls"/>
-      </div>
-    </div>
-    <div class="box-border h-40 w-40 p-4 border-4 border-rose-500 rounded-md">
-      <div class="text-center text-rose-500">
-          <AutoFitText :max="30" :min="20" modelValue="No allocations"/>
-      </div>
-    </div>
-    <div class="box-border h-40 w-40 p-4 border-4 border-rose-500 rounded-md">
-      <div class="text-center text-rose-500">
-          <AutoFitText :max="30" :min="20" modelValue="No mutexes"/>
-      </div>
-    </div>
-</div>
 
