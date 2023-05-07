@@ -62,8 +62,8 @@ image: speaker_portrait.jpg
 - 8 years experience in the audio industry
     - Dolby
     - Roblox
-- Specialize in immersive audio.
-- Love music, DJing and technology! 
+- Specialist in immersive audio.
+    - Playback and content creation.
 
 <!-- TODO slide numbers?? -->
 <!-- <div class="absolute left-5px bottom-5px">
@@ -85,84 +85,10 @@ background: cassette.avif
 </div>
 
 ---
-clicks: 3 
 ---
 
 
 # Motivation
-
-<br>
-
-<div v-if="$slidev.nav.clicks == 0">
-
-## 1. Diagnostics
-
-```cpp {5}
-void SomeRealtimeFunction(float** buffer, int bufferSize, int channels)
-{
-   if (retVal != STATUS_OK)
-   {
-       LOG_CRIT("Error occurred! Send help! %s", someErrorString);
-   }
-}
-```
-
-</div>
-
-<div v-if="$slidev.nav.clicks == 1">
-
-## 2. Metrics
-
-```cpp {11}
-void SomeRealtimeFunction(float** buffer, int bufferSize, int channels)
-{
-  const auto startTime = GetTimestamp();
-  RenderAudio()
-  const auto endTime = GetTimestamp();
-
-  mAverageRenderTime = ...; mPeakRenderTime = ...;
-
-  if (haventLoggedIn10Seconds) 
-  {
-     LogRenderStatistics(mAverageRenderTime, mPeakRenderTime);
-  }
-
-  if (retVal != STATUS_OK)
-  {
-     LOG_CRIT("Error occurred! Send help! %s", someErrorString);
-  }
-}
-```
-</div>
-
-<div v-if="$slidev.nav.clicks == 2">
-
-## 3. User generated Lua code
-
-```cpp {4}
-void SomeRealtimeFunction(float** buffer, int bufferSize, int channels)
-{
-  const auto startTime = GetTimestamp();
-  RenderUserLua();
-  RenderAudio();
-  const auto endTime = GetTimestamp();
-
-  mAverageRenderTime = ...; mPeakRenderTime = ...;
-
-  if (haventLoggedIn10Seconds) 
-  {
-     LogRenderStatistics(mAverageRenderTime, mPeakRenderTime);
-  }
-
-  if (retVal != STATUS_OK)
-  {
-     LOG_CRIT("Error occurred! Send help! %s", someErrorString);
-  }
-}
-```
-</div>
-
-<div v-if="$slidev.nav.clicks >= 3">
 
 ## 1. Diagnostics
 
@@ -185,8 +111,6 @@ LogRenderStatistics(mAverageRenderTime, mPeakRenderTime);
 ```cpp
 RenderUserLua();
 ```
-
-</div>
 
 ---
 layout: cover
@@ -224,7 +148,7 @@ int RealtimeCallback()
 ```
 
 ---
-clicks: 2
+clicks: 1 
 ---
 # Real-time safety recap
 <br>
@@ -338,7 +262,7 @@ image: /Moodycamel_logo.png
 
 # ReaderWriterQueue
 
-```cpp
+```cpp {3,4|6,7}
 using namespace moodycamel;
 
 // Reserve space for 100 elements
@@ -348,9 +272,9 @@ ReaderWriterQueue<int> q{100};
 bool succeeded = q.try_enqueue(18);  
 assert(succeeded);
 
-int number;
-q.try_dequeue(number);
 ```
+<br>
+<br>
 <br>
 <br>
 <br>
@@ -472,7 +396,7 @@ void RealtimeLog(/* */)
 man 3 vsnprintf
 ```
 > ... 
-> Decimal conversions (d, u, or i) or the integral portion of a floating point conversion (f or F) should be grouped and **separated by thousands using the non-monetary separator returned by localeconv(3)**. 
+> **thousands and decimal separator returned by localeconv(3)**. 
 > ... 
 
 <br>
@@ -643,7 +567,6 @@ void UserInterfaceThread()
     Log(1);
      
     Log(3);
-    Log(4);
 }
 ```
 <br>
@@ -673,7 +596,6 @@ sequenceDiagram
   UI Thread->>+File: Log(1)
   Audio Thread->>+Queue: RealtimeLog(2)
   UI Thread->>+File: Log(3)
-  UI Thread->>+File: Log(4)
   Logging Thread->>+Queue: ProcessLogs()
   Logging Thread->>+File: Log(2)
 ```
@@ -685,7 +607,6 @@ sequenceDiagram
 > ./testPrinter.out
 UI   : 1
 UI   : 3
-UI   : 4
 AUDIO: 2
 ```
 
@@ -694,6 +615,7 @@ AUDIO: 2
 
 ---
 layout: two-cols
+disabled: true
 ---
 
 # Non-real-time logging
@@ -738,24 +660,19 @@ void ProcessAndPrintLogs()
 static std::atomic<int> gSequenceNumber { 0 };
 ```
 
+<br>
+
 <div v-click="1">
 ```cpp
-void PrintToFile(int sequenceNum, /* */) {
-   std::printf("%i”, sequenceNum); 
-   ... // print rest
-}
-
-```
-</div>
-<div v-click="2">
-```cpp
 void Log(/* */) {
-   PrintToFile(region, level, ++gSequenceNumber, message);
+   PrintToFile(++gSequenceNumber, ...);
 }
 ```
 </div>
 
-<div v-click="3">
+<br>
+
+<div v-click="2">
 ```cpp
 void RealtimeLog(/* */) {
    ...
@@ -1061,6 +978,7 @@ background: caution.avif
 </v-clicks>
 
 ---
+disabled: true
 ---
 # Thank you!
 
