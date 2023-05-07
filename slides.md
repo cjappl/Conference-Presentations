@@ -1,29 +1,16 @@
 ---
-# try also 'default' to start simple
 theme: default
-# random image from a curated Unsplash collection by Anthony
-# like them? see https://unsplash.com/collections/94734566/slidev
-# background: https://source.unsplash.com/collection/94734566/1920x1080
-background: cassette.avif 
-# apply any windi css classes to the current slide
-class: "text-center"
-# https://sli.dev/custom/highlighters.html
+background: cassette.avif
+class: text-center
 highlighter: shiki
-# show line numbers in code blocks
 lineNumbers: true
-# some information about the slides, markdown enabled
-
-# persist drawings in exports and build
 drawings:
   persist: false
-# page transition
 transition: slide-left
-# use UnoCSS
 css: unocss
-# light or dark?
-colorSchema: 'light'
-# favicon
-favicon: 'https://cdn.jsdelivr.net/gh/slidevjs/slidev/assets/favicon.png'
+colorSchema: light
+favicon: https://cdn.jsdelivr.net/gh/slidevjs/slidev/assets/favicon.png
+title: Taming real-time logging
 ---
 
 <div class='text-center font-medium text-shadow-lg'>
@@ -55,7 +42,7 @@ Chris Apple
 -->
 
 <!--
-The last comment block of each slide will be treated as slide notes. It will be visible and editable in Presenter Mode along with the slide. [Read more in the docs](https://sli.dev/guide/syntax.html#notes)
+asdf
 -->
 
 ---
@@ -313,7 +300,7 @@ background: cassette.avif
 ---
 ---
 
-# Version 1: Logging thread
+# Version 1: Logging thread with lock free queue
 
 
 ```mermaid {theme: 'light'}
@@ -329,7 +316,7 @@ sequenceDiagram
 ---
 ---
 
-# Version 1: Logging thread
+# Version 1: Logging thread with lock free queue
 
 ```cpp{all|8|10|5|all}
 struct LoggingData
@@ -376,7 +363,7 @@ q.try_dequeue(number);
 ---
 ---
 
-# Version 1: Logging thread
+# Version 1: Logging thread with lock free queue
 
 ```cpp
 struct LoggingData 
@@ -407,7 +394,7 @@ void RealtimeLog(LogRegion region, LogLevel level, const char* format, ...)
 ---
 ---
 
-# Version 1: Logging thread
+# Version 1: Logging thread with lock free queue
 
 ```cpp 
 void RealtimeLog(LogRegion region, LogLevel level, const char* format, ...) 
@@ -872,7 +859,7 @@ background: cassette.avif
 # Limitations
 
 ---
----
+
 # Truncation and data loss
 ```cpp{all|1,8|2,13|all}
 constexpr auto MAX_MESSAGE_SIZE = 512;   // WILL TRUNCATE ANOTHING MORE!
@@ -890,21 +877,25 @@ using LockFreeLoggingQueue = moodycamel::ReaderWriterQueue<LoggingData>;
 LockFreeLoggingQueue mLoggingQueue { LOG_QUEUE_MAX_SIZE };
 ```
 
+<!--
+Also, messages can get "caught in the queue" you crash or don't shut down properly! Leaving valuable data behind.
+-->
+
 ---
 layout: image-right
 image: racecar.avif
 ---
 # Speed
 
-- Heavy use of atomics in the lock-free queue
+- Lock free queues run on atomic pointers, which can be slow. 
 
 ## Advice
-- Log sparingly
-- Consider compiling out in release mode
+- Log sparingly.
+- Consider compiling out in release mode.
 - Don't use your real-time log for all logging!
-    - Prevents data loss
-    - No performance penalty 
-    - Flushes automatically
+    - Prevents data loss.
+    - No performance penalty for atomics.
+    - Flushes as often as you'd like.
 
 <br>
 
@@ -1180,4 +1171,3 @@ Status Log(const LogData& inputData, const char* format, ...) __attribute__ ((fo
     return retVal;
 }
 ```
-
