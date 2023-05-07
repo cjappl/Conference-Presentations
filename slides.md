@@ -79,27 +79,12 @@ image: speaker_portrait.jpg
 - Love music, DJing and technology! 
 
 <!-- TODO slide numbers?? -->
-<div class="absolute left-5px bottom-5px">
+<!-- <div class="absolute left-5px bottom-5px">
 <SlideCurrentNo />
 </div>
 
 <br>
-<br>
-
----
-disabled: true
----
-
-# Goals
-
-- Design a real-time safe logger
-    - Lock free
-    - Allocation free
-    - System call free
-- Logger must support general purpose use
-    - Any number of arguments, like `cout`, `printf`, `fmt`
-    - `RealtimeLog("Hello, %s, lucky number: %d", "World", 777);`
-- Third Party Libraries have reasonable licensing for corporate use.
+<br> !-->
 
 ---
 layout: cover
@@ -330,7 +315,6 @@ background: cassette.avif
 
 # Version 1: Logging thread
 
-<br>
 
 ```mermaid {theme: 'light'}
 sequenceDiagram
@@ -346,7 +330,6 @@ sequenceDiagram
 ---
 
 # Version 1: Logging thread
-<br>
 
 ```cpp{all|8|10|5|all}
 struct LoggingData
@@ -367,7 +350,6 @@ image: /Moodycamel_logo.png
 ---
 
 # ReaderWriterQueue
-<br>
 
 ```cpp
 using namespace moodycamel;
@@ -382,6 +364,9 @@ assert(succeeded);
 int number;
 q.try_dequeue(number);
 ```
+<br>
+<br>
+<br>
 <br>
 <br>
 <br>
@@ -527,8 +512,8 @@ image: /StackTrace_printf.png
 <br>
 
 <div class="grid grid-cols-3 flex justify-center gap-40">
-    <div class="box-border h-40 w-40 p-4 border-4 border-rose-500 rounded-md">
-      <div class="text-center text-rose-500">
+    <div class="box-border h-40 w-40 p-4 border-4 border-yellow-500 rounded-md">
+      <div class="text-center text-yellow-500">
           <AutoFitText :max="30" :min="20" modelValue="No system calls"/>
       </div>
     </div>
@@ -912,9 +897,14 @@ image: racecar.avif
 # Speed
 
 - Heavy use of atomics in the lock-free queue
+
+## Advice
 - Log sparingly
 - Consider compiling out in release mode
 - Don't use your real-time log for all logging!
+    - Prevents data loss
+    - No performance penalty 
+    - Flushes automatically
 
 <br>
 
@@ -953,6 +943,8 @@ void func (int a, ...)
 </div>
 
 <div v-if="$slidev.nav.clicks >= 1">
+
+<br>
 
 ## ...ish (?)
 
