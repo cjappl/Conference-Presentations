@@ -9,7 +9,7 @@ drawings:
 transition: slide-left
 css: unocss
 colorSchema: light
-favicon: https://cdn.jsdelivr.net/gh/slidevjs/slidev/assets/favicon.png
+favicon: spatial.png 
 title: Taming real-time logging
 ---
 
@@ -238,6 +238,7 @@ sequenceDiagram
 ```
 
 ---
+disabled: true
 ---
 
 # Version 1: Logging thread with lock free queue
@@ -260,7 +261,7 @@ layout: image-right
 image: /Moodycamel_logo.png
 ---
 
-# ReaderWriterQueue
+# A lock free queue
 
 ```cpp {3,4|6,7}
 using namespace moodycamel;
@@ -300,7 +301,7 @@ struct LoggingData
 <br> 
 
 <v-click>
-```cpp {all|10|all}
+```cpp {all|8|10|all}
 void RealtimeLog(LogRegion region, LogLevel level, const char* format, ...) 
 {
    LoggingData data;
@@ -331,20 +332,48 @@ void RealtimeLog(LogRegion region, LogLevel level, const char* format, ...)
 
 <br> 
 
-```cpp {all|5|all}
-void ProcessAndPrintLogs() 
+```cpp {all|6|all}
+void LoggingThread() 
 {
-   LoggingData data;
+   while(true) {
 
-   while (mLoggingQueue.try_dequeue(data))
-   {
-       std::cout << "[" << data.level << "] ";
-       std::cout << "(" << data.region << ") ";
-       std::cout <<        data.message;
-       std::cout << '\n';
+       LoggingData data;
+       while (mLoggingQueue.try_dequeue(data)) {
+           std::cout << "[" << data.level << "] ";
+           std::cout << "(" << data.region << ") ";
+           std::cout <<        data.message;
+           std::cout << '\n';
+       }
+
    }
 }
 ```
+
+---
+
+# Truncation and data loss
+```cpp{all|1,8|2,13|all}
+constexpr auto MAX_MESSAGE_SIZE = 512;   // WILL TRUNCATE ANOTHING MORE!
+constexpr auto LOG_QUEUE_MAX_SIZE = 100; // WILL DROP ANY MESSAGES IF QUEUE IS FULL!
+
+struct LoggingData
+{
+   LogRegion region;
+   LogLevel  level;
+   char      message[MAX_MESSAGE_SIZE];
+};
+
+using LockFreeLoggingQueue = moodycamel::ReaderWriterQueue<LoggingData>;
+
+LockFreeLoggingQueue mLoggingQueue { LOG_QUEUE_MAX_SIZE };
+```
+
+<!--
+Also, messages can get "caught in the queue" you crash or don't shut down properly! Leaving valuable data behind.
+
+also mention speed
+-->
+
 
 ---
 ---
@@ -418,13 +447,13 @@ image: /StackTrace_printf.png
 
 
 ---
----
+
 # Log thread using std library snprintf functions
 <br>
 
 <div class="grid grid-cols-3 flex justify-center gap-40">
-    <div class="box-border h-40 w-40 p-4 border-4 border-yellow-500 rounded-md">
-      <div class="text-center text-yellow-500">
+    <div class="box-border h-40 w-40 p-4 border-4 border-rose-500 rounded-md">
+      <div class="text-center text-rose-500">
           <AutoFitText :max="30" :min="20" modelValue="No system calls"/>
       </div>
     </div>
@@ -439,6 +468,9 @@ image: /StackTrace_printf.png
       </div>
     </div>
 </div>
+
+<!--
+-->
 
 ---
 layout: cover
@@ -486,10 +518,10 @@ image: /stb.png
 </div>
 
 ---
----
+
 # Version 2: Using a third party vsnprintf
 
-```cpp{2,3,9-10}
+```cpp{2,3,14-15}
 
 #define STB_SPRINTF_IMPLEMENTATION
 #include "stb_sprintf.h"
@@ -498,15 +530,120 @@ void RealtimeLog(/* */)
 {
    ...
 
+   va_list args;
+
+   va_start(args, format);
+   vprintf(format, args);
+
    //  vsnprintf(data.message, MAX_MESSAGE_SIZE, format, args);
    stb_vsnprintf(data.message, MAX_MESSAGE_SIZE, format, args);
+
+   va_end(args);
 
    mLoggingQueue.try_enqueue(data);
 }
 ```
 
+<!--
+TODO
+-->
+
+---
+layout: cover
+background: cassette.avif 
+---
+
+# Is using va_args real-time safe?
+
+
+---
+clicks: 1 
+---
+
+# Yes!
+
+<div v-if="$slidev.nav.clicks >= 0">
+
+
+```c
+void func (int a, ...)
+{
+   // va_start
+   char *p = (char *) &a + sizeof a;
+
+   // va_arg
+   int i1 = *((int *)p);
+   p += sizeof (int);
+
+   // va_arg
+   long i2 = *((long *)p);
+   p += sizeof (long);
+}
+```
+</div>
+
+<div v-if="$slidev.nav.clicks >= 1">
+
+<br>
+
+## ...ish (?)
+
+```console
+> man 3 va_args # https://linux.die.net/man/3/va_arg
+...
+Finally, on systems where arguments are passed in registers, 
+it may be necessary for va_start() to allocate memory
+...
+```
+
+</div>
+
+---
+clicks: 1
+---
+
+# Variadic Templates as an alternative to va_args[^1]
+
+```
+
+template<typename ...T>
+void RealtimeLog(LogRegion region, LogLevel level, T&&... args) 
+{
+    ...
+};
+
+```
+
+<div v-if="$slidev.nav.clicks >= 1" class='text-center'>
+
+<br>
+<br>
+
+## This would pair nicely with `fmt::format_to_n` 
+## (see Appendix slides)
+
+</div>
+
+[^1]: [Variadic Templates are Funadic - CppCon 2012](https://www.youtube.com/watch?v=dD57tJjkumE)
+
+<style>
+.footnotes-sep {
+  @apply mt-20 opacity-10;
+}
+.footnotes {
+  @apply text-sm opacity-75;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+}
+.footnote-backref {
+  display: none;
+}
+</style>
+
 ---
 ---
+
 # Version 2: Logging thread + `stb_vsnprintf`
 <br>
 <div class="grid grid-cols-3 flex justify-center gap-40">
@@ -542,7 +679,6 @@ void RealtimeLog(LogRegion region, LogLevel level, const char* format, ...) {
     mLoggingQueue.try_enqueue(data);
 }
 ```
-
 
 
 
@@ -683,7 +819,6 @@ void RealtimeLog(/* */) {
 </div>
 
 ---
----
 
 # Logging thread + `stb_vsnprintf` + seq number
 <br>
@@ -718,25 +853,17 @@ void RealtimeLog(/* */) {
 {"region": "AUDIO", "severity": "INFO", "message": "...", "seq": 2}
 ```
 
-
----
-layout: cover
-class: "text-center"
-background: cassette.avif 
----
-
-# Summary 
-
 ---
 ---
 
-# Summary
+
+# Implementation summary
 
 <br>
 
 ## On initialization:
 1. Create a lock-free queue containing type `LogData` - contains any custom type plus a `char` buffer.
-2. Create a thread to periodically poll and print out the enqueued messages.
+2. Create a thread to periodically call `ProcessLog`.
 
 <br>
 
@@ -749,11 +876,11 @@ background: cassette.avif
 <br>
 
 ## In the `ProcessLog` function:
-1. periodically try to dequeue all the messages in the `LogData` queue, and Log them!
-
+1. Periodically dequeue the messages in the `LogData` queue, and Log them!
 
 ---
 ---
+
 # `cjappl/rtlog-cpp`
 
 <br>
@@ -771,10 +898,13 @@ background: cassette.avif
 layout: cover
 class: "text-center"
 background: cassette.avif 
+disabled: true
 ---
 
 # Limitations
 
+---
+disabled: true
 ---
 
 # Truncation and data loss
@@ -801,7 +931,9 @@ Also, messages can get "caught in the queue" you crash or don't shut down proper
 ---
 layout: image-right
 image: racecar.avif
+disabled: true
 ---
+
 # Speed
 
 - Lock free queues run on atomic pointers, which can be slow. 
@@ -817,91 +949,83 @@ image: racecar.avif
 <br>
 
 ---
+
+# What did we learn?
+
+<v-clicks>
+
+- Don't use normal logging in your real-time thread.
+- A real-time logger is a lock-free queue that you can print messages into.
+- Beware the sneaky system calls to `localeconv` in standard `printf` family code.
+- Use sequence numbers to ensure your loggers have proper ordering.
+- Beware the possibility of data loss using the real-time logger.
+- `va_args` is real-time safe on many platforms.
+    - Variadic templates are probably the best general solution for all systems
+    - Also unlocks the use of `libfmt` - which is type-safe as well!
+
+</v-clicks>
+
+---
+disabled: true
+---
+
+# Thank you!
+
+<div class="text-center">
+
+`cjappl/rtlog-cpp`
+
+</div>
+
+<div class="h-screen">
+<img src="/QR_rtlog.svg" class="mx-auto" />
+
+  <a href="https://github.com/cjappl/rtlog-cpp" target="_blank" alt="GitHub"
+    class="text-xl slidev-icon-btn!border-none p-1/2 justify-center">
+    <carbon-logo-github />
+  </a>
+
+</div>
+
+---
+layout: image-right
+image: speaker_portrait.jpg
+---
+
+# Special thanks
+
+## Reviewers
+
+- Ryan Avery
+- Palmer Hogen
+- Eric Odland
+- David O'Neal
+- Matt Oshry
+
+## Open source libraries
+
+- [`moodycamel/readerwriterqueue`](https://github.com/cameron314/readerwriterqueue)
+- [`nothings/stb`](https://github.com/nothings/stb)
+
+## Slides created in 
+- [`slidevjs/slidev`](https://github.com/slidevjs/slidev)
+
+
+---
 layout: cover
 background: cassette.avif 
 ---
 
-# Is using va_args real-time safe?
+<div class='text-center font-medium text-shadow-lg'>
 
-
----
-clicks: 2
----
-
-# Yes!
-
-<div v-if="$slidev.nav.clicks >= 0">
-
-
-```c
-void func (int a, ...)
-{
-   // va_start
-   char *p = (char *) &a + sizeof a;
-
-   // va_arg
-   int i1 = *((int *)p);
-   p += sizeof (int);
-
-   // va_arg
-   long i2 = *((long *)p);
-   p += sizeof (long);
-}
-```
-</div>
-
-<div v-if="$slidev.nav.clicks >= 1">
-
-<br>
-
-## ...ish (?)
-
-```console
-> man 3 va_args # https://linux.die.net/man/3/va_arg
-...
-Finally, on systems where arguments are passed in registers, 
-it may be necessary for va_start() to allocate memory
-...
-```
+# Appendix
 
 </div>
 
 ---
 ---
 
-# Variadic Templates as an alternative to va_args[^1]
-
-```
-
-template<typename ...T>
-void RealtimeLog(LogRegion region, LogLevel level, T&&... args) 
-{
-    ...
-};
-
-```
-
-[^1]: [Variadic Templates are Funadic - CppCon 2012](https://www.youtube.com/watch?v=dD57tJjkumE)
-
-<style>
-.footnotes-sep {
-  @apply mt-20 opacity-10;
-}
-.footnotes {
-  @apply text-sm opacity-75;
-    position: fixed;
-    bottom: 0;
-    width: 100%;
-}
-.footnote-backref {
-  display: none;
-}
-</style>
-
----
----
-
-# What about `libfmt`?
+# Variadic templates and `libfmt`
 
 According to the author of `libfmt` you can use `format_to_n` safely with no allocations![^1]
 
@@ -959,78 +1083,6 @@ background: caution.avif
 
 </div>
 
----
----
-
-# Recap
-
-<v-clicks>
-
-- Don't use normal logging in your real-time thread.
-- A real-time logger is a lock-free queue that you can print messages into.
-- Beware the sneaky system calls to `localeconv` in standard `printf` family code.
-- Use sequence numbers to ensure your loggers have proper ordering.
-- Beware the possibility of data loss using the real-time logger.
-- `va_args` is real-time safe on most platforms.
-    - Variadic templates for the paranoid (or embedded inclined).
-    - Also unlocks the use of `libfmt` - which is type-safe as well!
-
-</v-clicks>
-
----
-disabled: true
----
-# Thank you!
-
-<div class="text-center">
-
-`cjappl/rtlog-cpp`
-
-</div>
-
-<div class="h-screen">
-<img src="/QR_rtlog.svg" class="mx-auto" />
-
-  <a href="https://github.com/cjappl/rtlog-cpp" target="_blank" alt="GitHub"
-    class="text-xl slidev-icon-btn!border-none p-1/2 justify-center">
-    <carbon-logo-github />
-  </a>
-
-</div>
-
----
-layout: image-right
-image: speaker_portrait.jpg
----
-
-# Special thanks
-
-## Reviewers
-
-- Ryan Avery
-- Palmer Hogen
-- Eric Odland
-- David O'Neal
-
-## Open source libraries
-
-- [`moodycamel/readerwriterqueue`](https://github.com/cameron314/readerwriterqueue)
-- [`nothings/stb`](https://github.com/nothings/stb)
-
-## Slides created in 
-- [`slidevjs/slidev`](https://github.com/slidevjs/slidev)
-
-
----
-layout: cover
-background: cassette.avif 
----
-
-<div class='text-center font-medium text-shadow-lg'>
-
-# Appendix
-
-</div>
 
 ---
 ---
