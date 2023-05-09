@@ -222,20 +222,37 @@ background: cassette.avif
 </div>
 
 ---
+clicks: 1 
 ---
 
 # Version 1: Logging thread with lock free queue
 
 
+<div v-if="$slidev.nav.clicks == 0">
+
 ```mermaid {theme: 'light'}
 sequenceDiagram
   autonumber
-  Audio Thread->>+Queue: RealtimeLog() calls Enqueue
+  Audio Thread->>+Lock Free Queue: RealtimeLog() calls Enqueue
+```
+
+</div>
+
+<div v-if="$slidev.nav.clicks > 0">
+
+```mermaid {theme: 'light'}
+sequenceDiagram
+  autonumber
+  Audio Thread->>+Lock Free Queue: RealtimeLog() calls Enqueue
   loop Periodically
-      Logging Thread->>+Queue: ProcessLogs() calls Dequeue
+      Logging Thread->>+Lock Free Queue: ProcessLogs() calls Dequeue
   end
   Note right of Logging Thread : printf/cout/Log
 ```
+
+</div>
+
+
 
 ---
 disabled: true
