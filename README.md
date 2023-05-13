@@ -1,6 +1,13 @@
-# Welcome to [Slidev](https://github.com/slidevjs/slidev)!
+# Taming Real-time logging
+## Lessons learned from the trenches
 
-To start the slide show:
+Presentation given at ADCx San Francisco in May of 2023.
+
+Feel free to open issues if you have questions.
+
+A link to the example library can be found here: [rtlog-cpp](https://github.com/cjappl/rtlog-cpp)
+
+## To start the slide show:
 
 - `npm install`
 - `npm run dev`
