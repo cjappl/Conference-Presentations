@@ -9,7 +9,7 @@ drawings:
 transition: slide-left
 css: unocss
 colorSchema: light
-favicon: spatial.png 
+favicon: spatial.png
 title: Taming real-time logging
 ---
 
@@ -42,7 +42,7 @@ Chris Apple
 -->
 
 <!--
-asdf
+
 -->
 
 ---
@@ -58,7 +58,7 @@ image: speaker_portrait.jpg
 
 <br>
 
-- Lead Audio Software Engineer @ Spatial Inc
+- Lead Audio Software Engineer - Spatial Inc.
 - 8 years experience in the audio industry
     - Dolby
     - Roblox
@@ -538,7 +538,7 @@ image: /stb.png
 
 # Version 2: Using a third party vsnprintf
 
-```cpp{2,3,14-15}
+```cpp{2,3,13-14}
 
 #define STB_SPRINTF_IMPLEMENTATION
 #include "stb_sprintf.h"
@@ -550,7 +550,6 @@ void RealtimeLog(/* */)
    va_list args;
 
    va_start(args, format);
-   vprintf(format, args);
 
    //  vsnprintf(data.message, MAX_MESSAGE_SIZE, format, args);
    stb_vsnprintf(data.message, MAX_MESSAGE_SIZE, format, args);
@@ -561,9 +560,6 @@ void RealtimeLog(/* */)
 }
 ```
 
-<!--
-TODO
--->
 
 ---
 layout: cover
@@ -621,23 +617,33 @@ clicks: 1
 
 # Variadic Templates as an alternative to va_args[^1]
 
-```
+<div v-if="$slidev.nav.clicks == 0">
 
+```cpp
 template<typename ...T>
-void RealtimeLog(LogRegion region, LogLevel level, T&&... args) 
+void RealtimeLogFmt(/* */, T&&... args)
 {
     ...
 };
 
 ```
+</div>
 
-<div v-if="$slidev.nav.clicks >= 1" class='text-center'>
+<div v-if="$slidev.nav.clicks >= 1">
 
-<br>
-<br>
 
-## This would pair nicely with `fmt::format_to_n` 
-## (see Appendix slides)
+```cpp
+template<typename ...T>
+void RealtimeLogFmt(/* */, fmt::format_string<T...> fmtString, T&&... args)
+{
+    ...
+    fmt::format_to_n(data.message, MAX_MESSAGE_SIZE, fmtString, args...);
+
+    mLoggingQueue.try_enqueue(data);
+};
+
+RealtimeLogFmt(/* */, "Hello {}. My lucky number is {}", "world", 777);
+```
 
 </div>
 
@@ -657,6 +663,10 @@ void RealtimeLog(LogRegion region, LogLevel level, T&&... args)
   display: none;
 }
 </style>
+
+<!--
+FIXME
+-->
 
 ---
 ---
@@ -977,7 +987,7 @@ disabled: true
 - Use sequence numbers to ensure your loggers have proper ordering.
 - Beware the possibility of data loss using the real-time logger.
 - `va_args` is real-time safe on many platforms.
-    - Variadic templates are probably the best general solution for all systems
+    - Variadic templates are probably the best general solution for all systems.
     - Also unlocks the use of `libfmt` - which is type-safe as well!
 
 </v-clicks>
