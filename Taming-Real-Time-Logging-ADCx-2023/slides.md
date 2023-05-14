@@ -736,7 +736,7 @@ void UserInterfaceThread()
 <br>
 
 ```cpp
-void RealtimeCallback ()
+void RealtimeCallback()
 {
 
     RealtimeLog(2);
@@ -796,7 +796,7 @@ void Log(...) {
 # Real-time logging
 
 ```cpp{all|7,11}
-void RealtimeLog(...) {
+void RealtimeLog(/* */) {
    ...
    mLoggingQueue.try_enqueue(data);
 }
