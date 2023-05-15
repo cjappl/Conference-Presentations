@@ -18,18 +18,16 @@ Edit the [slides.md](./slides.md) to see the changes.
 Learn more about Slidev on [documentations](https://sli.dev/).
 
 
+## Final slide export
+
+The slides are reproduced below, in a lower quality. 
+The best way to get the info (with clickable links) is to run the presentation as mentioned above
+
 -----------------------------------------------------
 
 ![Taming real-time logging](./slides-export/001.png)
 
 ![About me](./slides-export/002.png)
-
-<div class="absolute left-5px bottom-5px">
-<SlideCurrentNo />
-</div>
-
-<br>
-<br> !
 
 ![Why do we need a real-time logger?](./slides-export/003.png)
 
@@ -53,10 +51,6 @@ Learn more about Slidev on [documentations](https://sli.dev/).
 
 ![Truncation and data loss](./slides-export/013.png)
 
-Also, messages can get "caught in the queue" you crash or don't shut down properly! Leaving valuable data behind.
-
-also mention speed
-
 ![All done??](./slides-export/014.png)
 
 ![What's wrong here?](./slides-export/015.png)
@@ -78,8 +72,6 @@ also mention speed
 ![Yes!](./slides-export/023.png)
 
 ![Variadic Templates as an alternative to va_args[^1]](./slides-export/024.png)
-
-FIXME
 
 ![Version 2: Logging thread + `stb_vsnprintf`](./slides-export/025.png)
 

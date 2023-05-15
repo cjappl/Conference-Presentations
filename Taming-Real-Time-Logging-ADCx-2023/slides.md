@@ -648,10 +648,6 @@ RealtimeLogFmt(/* */, "Hello {}. My lucky number is {}", "world", 777);
 }
 </style>
 
-<!--
-FIXME
--->
-
 ---
 ---
 
