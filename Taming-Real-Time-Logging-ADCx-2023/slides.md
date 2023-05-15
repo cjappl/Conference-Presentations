@@ -1,6 +1,6 @@
 ---
 theme: default
-background: cassette.avif
+background: cassette_dark.avif
 class: text-center
 highlighter: shiki
 lineNumbers: true
@@ -13,7 +13,7 @@ favicon: spatial.png
 title: Taming real-time logging
 ---
 
-<div class='text-center font-medium text-shadow-lg'>
+<div class='text-center font-medium'>
 
 # Taming real-time logging 
 ## Lessons learned from the trenches
@@ -75,14 +75,10 @@ image: speaker_portrait.jpg
 
 ---
 layout: cover
-background: cassette.avif
+background: cassette_dark.avif
 ---
 
-<div class='text-center font-medium text-shadow-lg'>
-
 # Why do we need a real-time logger?
-
-</div>
 
 ---
 ---
@@ -114,10 +110,10 @@ RenderUserLua();
 
 ---
 layout: cover
-background: cassette.avif 
+background: cassette_dark.avif 
 ---
 
-<div class='text-center font-medium text-shadow-lg'>
+<div class='text-center font-medium'>
 
 # Version 0
 ## The problem with simple printf logging
@@ -211,10 +207,10 @@ void RealtimeLog(const char* format, ...)
 
 ---
 layout: cover
-background: cassette.avif 
+background: cassette_dark.avif 
 ---
 
-<div class='text-center font-medium text-shadow-lg'>
+<div class='text-center font-medium'>
 
 # Version 1
 ## Using a logging thread
@@ -475,10 +471,10 @@ image: /StackTrace_printf.png
 
 ---
 layout: cover
-background: chip.jpg 
+background: cassette_dark.avif
 ---
 
-<div class='text-center font-medium text-shadow-lg backdrop-blur-2 rounded-2xl'>
+<div class='text-center font-medium'>
 
 # A group more paranoid than audio software engineers?
 
@@ -489,7 +485,7 @@ layout: cover
 background: chip.jpg 
 ---
 
-<div class='text-center font-medium text-shadow-lg backdrop-blur-2 rounded-2xl'>
+<div class='text-center font-medium backdrop-blur-2 rounded-2xl'>
 
 # Embedded systems engineers!
 
@@ -547,7 +543,7 @@ void RealtimeLog(/* */)
 
 ---
 layout: cover
-background: cassette.avif 
+background: cassette_dark.avif 
 ---
 
 # Is using va_args real-time safe?
@@ -685,10 +681,10 @@ void RealtimeLog(LogRegion region, LogLevel level, const char* format, ...) {
 
 ---
 layout: cover
-background: cassette.avif 
+background: cassette_dark.avif 
 ---
 
-<div class='text-center font-medium text-shadow-lg'>
+<div class='text-center font-medium'>
 
 # A note on ordering
 
@@ -898,7 +894,7 @@ void RealtimeLog(/* */) {
 ---
 layout: cover
 class: "text-center"
-background: cassette.avif 
+background: cassette_dark.avif 
 disabled: true
 ---
 
@@ -1014,10 +1010,10 @@ image: speaker_portrait.jpg
 
 ---
 layout: cover
-background: cassette.avif 
+background: cassette_dark.avif 
 ---
 
-<div class='text-center font-medium text-shadow-lg'>
+<div class='text-center font-medium'>
 
 # Appendix
 
@@ -1057,7 +1053,7 @@ class: 'text-center'
 background: caution.avif
 ---
 
-<div class='text-center font-medium text-shadow-lg'>
+<div class='text-center font-medium'>
 
 # CAUTION: 
 ## C++20 libfmt not guaranteed to be real-time safe!
