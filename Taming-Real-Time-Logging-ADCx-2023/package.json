@@ -7,9 +7,9 @@
     "export": "slidev export"
   },
   "dependencies": {
-    "@slidev/cli": "^0.40.5",
+    "@slidev/cli": "^0.40.16",
     "@slidev/theme-apple-basic": "^0.20.0",
-    "@slidev/theme-default": "*",
+    "@slidev/theme-default": "^0.21.2",
     "@slidev/theme-seriph": "*"
   },
   "devDependencies": {

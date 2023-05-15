@@ -599,7 +599,7 @@ it may be necessary for va_start() to allocate memory
 clicks: 1
 ---
 
-# Variadic Templates as an alternative to va_args[^1]
+# Variadic Templates as an alternative to va_args
 
 <div v-if="$slidev.nav.clicks == 0">
 
@@ -629,24 +629,18 @@ void RealtimeLogFmt(/* */, fmt::format_string<T...> fmtString, T&&... args)
 RealtimeLogFmt(/* */, "Hello {}. My lucky number is {}", "world", 777);
 ```
 
+
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+
+
+[Variadic Templates are Funadic - CppCon 2012](https://www.youtube.com/watch?v=dD57tJjkumE)
+
 </div>
-
-[^1]: [Variadic Templates are Funadic - CppCon 2012](https://www.youtube.com/watch?v=dD57tJjkumE)
-
-<style>
-.footnotes-sep {
-  @apply mt-20 opacity-10;
-}
-.footnotes {
-  @apply text-sm opacity-75;
-    position: fixed;
-    bottom: 0;
-    width: 100%;
-}
-.footnote-backref {
-  display: none;
-}
-</style>
 
 ---
 ---
@@ -1034,7 +1028,7 @@ background: cassette.avif
 
 # Variadic templates and `libfmt`
 
-According to the author of `libfmt` you can use `format_to_n` safely with no allocations![^1]
+According to the author of `libfmt` you can use `format_to_n` safely with no allocations!
 
 ```cpp{all|1-2|8|15}
 template<typename ...T>
@@ -1056,26 +1050,6 @@ int main()
     return 0;
 }
 ```
-
-
-
-[^1]: [Possible memory allocations #1665 fmtlib/fmt](https://github.com/fmtlib/fmt/issues/1665)
-
-<style>
-.footnotes-sep {
-  @apply mt-20 opacity-10;
-}
-.footnotes {
-  @apply text-sm opacity-75;
-    position: fixed;
-    bottom: 0;
-    width: 100%;
-}
-.footnote-backref {
-  display: none;
-}
-</style>
-
 
 ---
 layout: cover
