@@ -78,7 +78,12 @@ layout: cover
 background: cassette_dark.avif
 ---
 
+
+<div class='text-center font-medium'>
+
 # Why do we need a real-time logger?
+
+</div>
 
 ---
 ---
@@ -144,13 +149,11 @@ int RealtimeCallback()
 ```
 
 ---
-clicks: 1 
 ---
 # Real-time safety recap
 <br>
 <br>
 
-<div v-if="$slidev.nav.clicks == 0">
 <div class="grid grid-cols-3 flex justify-center gap-40">
     <div class="box-border h-40 w-40 p-4 border-4 border-black-500 rounded-md">
       <div class="text-center text-black-500">
@@ -168,9 +171,12 @@ clicks: 1
       </div>
     </div>
 </div>
-</div>
 
-<div v-if="$slidev.nav.clicks > 0">
+---
+---
+# Real-time safety recap
+<br>
+<br>
 
 <div class="grid grid-cols-3 flex justify-center gap-40">
     <div class="box-border h-40 w-40 p-4 border-4 border-rose-500 rounded-md">
@@ -202,8 +208,6 @@ void RealtimeLog(const char* format, ...)
    va_end(args);
 }
 ```
-
-</div>
 
 ---
 layout: cover
@@ -548,15 +552,10 @@ background: cassette_dark.avif
 
 # Is using va_args real-time safe?
 
-
 ---
-clicks: 1 
 ---
 
 # Yes!
-
-<div v-if="$slidev.nav.clicks >= 0">
-
 
 ```c
 void func (int a, ...)
@@ -573,9 +572,27 @@ void func (int a, ...)
    p += sizeof (long);
 }
 ```
-</div>
 
-<div v-if="$slidev.nav.clicks >= 1">
+---
+---
+
+# Yes!
+
+```c
+void func (int a, ...)
+{
+   // va_start
+   char *p = (char *) &a + sizeof a;
+
+   // va_arg
+   int i1 = *((int *)p);
+   p += sizeof (int);
+
+   // va_arg
+   long i2 = *((long *)p);
+   p += sizeof (long);
+}
+```
 
 <br>
 
@@ -589,15 +606,10 @@ it may be necessary for va_start() to allocate memory
 ...
 ```
 
-</div>
-
 ---
-clicks: 1
 ---
 
 # Variadic Templates as an alternative to va_args
-
-<div v-if="$slidev.nav.clicks == 0">
 
 ```cpp
 template<typename ...T>
@@ -607,10 +619,11 @@ void RealtimeLogFmt(/* */, T&&... args)
 };
 
 ```
-</div>
 
-<div v-if="$slidev.nav.clicks >= 1">
+---
+---
 
+# Variadic Templates as an alternative to va_args
 
 ```cpp
 template<typename ...T>
@@ -635,8 +648,6 @@ RealtimeLogFmt(/* */, "Hello {}. My lucky number is {}", "world", 777);
 
 
 [Variadic Templates are Funadic - CppCon 2012](https://www.youtube.com/watch?v=dD57tJjkumE)
-
-</div>
 
 ---
 ---
@@ -715,13 +726,10 @@ void RealtimeCallback()
 ```
 
 ---
-clicks: 1
 ---
 
 
 # A note on ordering
-
-<div v-if="$slidev.nav.clicks == 0">
 
 ```mermaid {theme: 'light'}
 sequenceDiagram
@@ -732,9 +740,11 @@ sequenceDiagram
   Logging Thread->>+Queue: ProcessLogs()
   Logging Thread->>+File: Log(2)
 ```
-</div>
 
-<div v-if="$slidev.nav.clicks >= 1">
+---
+---
+
+# A note on ordering
 
 ```bash
 > ./testPrinter.out
@@ -742,9 +752,6 @@ UI   : 1
 UI   : 3
 AUDIO: 2
 ```
-
-
-</div>
 
 ---
 layout: two-cols
